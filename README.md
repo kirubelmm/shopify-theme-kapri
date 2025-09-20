@@ -1,83 +1,53 @@
-🚀 Development Setup
+# 🦁 Kapri – #1 opensource Premium Shopify Theme
 
-This theme uses Laravel Mix, Tailwind CSS, and Alpine.js to streamline development. Follow the steps below to set up your local dev environment.
+[Demo store](https://kirubelm.myshopify.com/)
+Password : Kirubel
 
-1. Requirements
+Welcome to **Kapri**, the cleanest open-source Shopify theme by [EcommerceNest](https://ecommercenest.com).  
+Designed for merchants who want a **beautiful, high-converting store** without complexity.
 
-Node.js
- (LTS version recommended)
+![Storefront Screenshot](assets/kapri-demo.png)
 
-npm
+---
 
-2. Install Dependencies
+## ✨ Why Choose Kapri?
 
-Navigate to your theme root folder and run:
+- 🛍 **Boost Sales** – Optimized layouts to turn visitors into customers  
+- 📱 **Mobile-First** – Looks perfect on any device  
+- ⚡ **Fast & Lightweight** – Speed-optimized for better conversions  
+- 🎨 **Easy to Customize** – Tailor colors, fonts, and sections with ease  
+- 🌍 **Global Ready** – Multi-language support out of the box  
+- 💡 **Modern Tech** – Built with Tailwind CSS & Alpine.js  
 
+---
+
+## 🚀 Get Started in Minutes
+
+1. **Download & Upload Theme**  
+   - Clone or download this repo  
+   - Upload the theme in your Shopify admin  
+
+2. **Customize Your Store**  
+   - Add your logo, colors, and brand assets  
+   - Rearrange sections to match your style  
+
+3. **Go Live & Sell**  
+   - Launch your store with confidence  
+   - Enjoy a clean, fast shopping experience for your customers  
+
+---
+
+## 🛠 Advanced Setup (Optional)
+
+For developers or merchants working with a developer:
+
+```bash
+git clone https://github.com/kirubelmm/shopify-theme-kapri.git
+cd shopify-theme-kapri
 npm init -y
 npm install laravel-mix --save-dev
 npm install tailwindcss postcss autoprefixer --save-dev
 npm install alpinejs
 
-3. Configuration
-Laravel Mix
-
-Create a file named webpack.mix.js in the project root:
-
-let mix = require('laravel-mix');
-
-mix.js('src/js/app.js', 'assets')
-   .sass('src/scss/app.scss', 'assets')
-   .postCss('src/scss/app.css', 'assets', [
-       require('tailwindcss')('./tailwind.config.js'),
-   ]);
-
-Tailwind CSS
-
-Generate a Tailwind config:
-
-npx tailwindcss init
-
-
-Update tailwind.config.js to watch your theme files:
-
-content: [
-  './layout/**/*.liquid',
-  './sections/**/*.liquid',
-  './snippets/**/*.liquid',
-  './templates/**/*.liquid',
-  './templates/customers/**/*.liquid',
-],
-
-File Structure
-src/
- ├── js/
- │   └── app.js
- └── scss/
-     └── app.scss
-
-4. Tailwind Directives
-
-Inside src/scss/app.scss add:
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-5. Scripts
-
-Update package.json with:
-
-"scripts": {
-  "dev": "npx mix",
-  "watch": "npx mix watch",
-  "prod": "npx mix --production"
-}
-
-6. Run
-
-Start the watcher:
-
-npm run watch
-
-
-Compiled assets will be generated in /assets (app.css, app.js) and auto-updated when you edit source files.
+## Contact us
+kirubelmulugeta3@gmail.com
