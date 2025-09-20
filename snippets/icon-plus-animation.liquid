@@ -1,0 +1,50 @@
+<div x-data="{ open: false }" class="flex items-center justify-center h-screen">
+    <button 
+      @click="open = !open" 
+      class="p-4 rounded-full focus:outline-none transition-all duration-300 hover:scale-105"
+      :class="open ? 'bg-red-100' : 'bg-blue-100'"
+    >
+      <svg 
+        class="h-16 w-16 transition-all duration-300"
+        :class="{ 'rotate-180': open }"
+        viewBox="0 0 24 24"
+        fill="none"
+      >
+        <!-- Background circle -->
+        <circle 
+          cx="12" 
+          cy="12" 
+          r="11" 
+          class="stroke-current transition-all duration-300"
+          :class="open ? 'text-red-500' : 'text-blue-500'"
+          stroke-width="1.5"
+        />
+        
+        <!-- Plus/X lines -->
+        <path 
+          class="transition-all origin-center duration-300"
+          :class="open ? 'opacity-0 rotate-90' : 'opacity-100'"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          d="M12 5V19"
+        />
+        <path 
+          class="transition-all origin-center duration-300"
+          :class="open ? 'rotate-45' : 'rotate-0'"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          d="M12 5V19"
+        />
+        <path 
+          class="transition-all origin-center duration-300"
+          :class="open ? '-rotate-45' : 'rotate-90'"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          d="M12 5V19"
+        />
+      </svg>
+    </button>
+  </div>

@@ -1,0 +1,112 @@
+{% comment %} <div x-data="languageSelector()" class="relative inline-block text-left">
+    <!-- Button to open the dropdown -->
+    <button @click="toggleDropdown" type="button" class="flex items-center justify-between w-auto h-1 bg-gray-300 ml-2 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+        <span x-text="selectedLanguage.name" class="text-gray-700"></span>
+        <svg class="w-4 h-4 ml-1 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
+    </button>
+
+    <!-- Dropdown menu -->
+    <div x-show="open" @click.away="closeDropdown" class="absolute right-0 mt-2 w-48 origin-top-right rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+        <ul role="list" class="py-1">
+            <template x-for="language in languages" :key="language.iso_code">
+                <li>
+                    <a href="#" @click.prevent="selectLanguage(language)" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none">
+                        <span x-text="language.name"></span>
+                    </a>
+                </li>
+            </template>
+        </ul>
+    </div>
+
+    <!-- Hidden Form for Language Selection -->
+    {% form 'localization', id: 'languageForm' %}
+        <input type="hidden" name="language_code" :value="selectedLanguage.iso_code">
+    {% endform %}
+</div>
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('languageSelector', () => ({
+            open: false,
+            selectedLanguage: {
+                name: "{{ localization.language.endonym_name | capitalize }}",
+                iso_code: "{{ localization.language.iso_code }}",
+            },
+            languages: [
+                {% for language in localization.available_languages %}
+                {
+                    name: "{{ language.endonym_name | capitalize }}",
+                    iso_code: "{{ language.iso_code }}",
+                },
+                {% endfor %}
+            ],
+            toggleDropdown() {
+                this.open = !this.open;
+            },
+            closeDropdown() {
+                this.open = false;
+            },
+            selectLanguage(language) {
+                this.selectedLanguage = language;
+                this.open = false;
+                this.submitLanguageForm();
+            },
+            submitLanguageForm() {
+                setTimeout(() => {
+                    document.getElementById('languageForm').submit(); // Submit the hidden form
+                }, 100);
+            }
+        }));
+    });
+</script> {% endcomment %}
+
+
+
+<div
+    x-data="{ isOpen: false }"
+    class="relative inline-block"
+    x-on:keydown.esc.window="isOpen = false"
+  >
+    {% if localization.available_languages.size > 1 %}
+      {% form 'localization' %}
+        <!-- Toggle Button -->
+        <button
+          type="button"
+          x-on:click="isOpen = !isOpen"
+          x-bind:aria-expanded="isOpen.toString()"
+          class="inline-flex items-center gap-2 rounded-sm border  px-4 py-2 text-sm font-medium hover:opacity-75 focus:outline-none focus:ring"
+          aria-haspopup="true"
+        >
+          {{ localization.language.endonym_name }}
+          <svg aria-hidden="true" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+  
+        <!-- Dropdown Menu (expands upward) -->
+        <div
+          x-cloak
+          x-show="isOpen"
+          x-transition.origin-bottom
+          x-on:click.outside="isOpen = false"
+          class="absolute bottom-full left-0 w-48 rounded-sm border bg-white mb-2 shadow-lg z-50"
+          role="menu"
+        >
+          {% for language in localization.available_languages %}
+            <button
+              type="submit"
+              name="locale_code"
+              value="{{ language.iso_code }}"
+              class="block w-full px-4 py-2 text-left text-sm text-black border-b border-gray-300 hover:bg-gray-100"
+              role="menuitem"
+            >
+              {{ language.endonym_name }}
+            </button>
+          {% endfor %}
+        </div>
+      {% endform %}
+    {% endif %}
+  </div>
+  

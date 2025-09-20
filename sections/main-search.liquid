@@ -1,0 +1,367 @@
+{% style %}
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .scroll-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .scroll-hide {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+{% endstyle %}
+
+<script src="{{ 'scroll-shadow.js' | asset_url }}" defer></script>
+<script src="{{ 'facets.js' | asset_url }}" defer="defer"></script>
+<script src="{{ 'main-search.js' | asset_url }}" defer="defer"></script>
+
+<section class="lg:px-10 md:px-4 px-2">
+  <div class="w-full flex flex-col items-center justify-center py-4">
+    <!-- Search Results Count -->
+    {%- if search.performed -%}
+      {%- if search.results_count > 0 -%}
+        <p class="text-sm font-medium opacity-50">Search results for</p>
+        <span class="text-lg font-semibold ">"{{ search.terms }}"</span>
+        <span class="text-sm opacity-60">{{ search.results_count }}products</span>
+      {%- else -%}
+        <p class=" text-lg py-10 ">{{ 'templates.search.no_results' | t: terms: search.terms }}</p>
+      {%- endif -%}
+    {%- endif -%}
+  </div>
+
+  <div
+    id="sticky-element"
+    class="md:sticky md:top-0 h-auto w-full flex justify-self-start items-center py-1 bg-white z-10 md:transition-shadow duration-300 "
+  >
+    <div class=" flex justify-between  ">
+      {% if section.settings.enable_filtering and search.results_count > 0 %}
+        <div
+          x-data="{ modalIsOpen: false }"
+          id="sticky-element"
+          class=" sticky top-0 h-auto z-30 items-center bg-white transition-shadow duration-300 py-2"
+        >
+          <!-- Trigger Button -->
+          <div class="">
+            <button
+              @click="modalIsOpen = true"
+              type="button"
+              class="flex justify-center items-center gap-2 whitespace-nowrap rounded-radius bg-primary border border-primary dark:border-primary-dark px-4 py-1 text-sm font-medium tracking-wide text-on-primary transition hover:opacity-75 text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:opacity-100 active:outline-offset-0 disabled:opacity-75 disabled:cursor-not-allowed dark:bg-primary-dark dark:text-on-primary-dark dark:focus-visible:outline-primary-dark"
+            >
+              Filter
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 512 512">
+                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M32 144h448M112 256h288M208 368h96"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Modal -->
+          <div
+            x-cloak
+            x-show="modalIsOpen"
+            x-trap.inert.noscroll="modalIsOpen"
+            @keydown.esc.window="modalIsOpen = false"
+            @click.self="modalIsOpen = false"
+            class="hidescroll fixed inset-0 z-30 flex items-end md:justify-start justify-center bg-black/20 backdrop-blur-md sm:items-center"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modalTitle"
+          >
+            <!-- Modal Dialog -->
+            <div
+              x-show="modalIsOpen"
+              x-transition:enter="transform transition ease-[cubic-bezier(1,0,0,1)] duration-[500ms]"
+              x-transition:enter-start="translate-y-full translate-x-0 md:-translate-x-full md:translate-y-0 opacity-100"
+              x-transition:enter-end="translate-y-0 translate-x-0 opacity-100"
+              x-transition:leave="transform transition ease-[cubic-bezier(1,0,0,1)] duration-[500ms]"
+              x-transition:leave-start="translate-y-0 translate-x-0 opacity-100"
+              x-transition:leave-end="translate-y-full translate-x-0 md:-translate-x-full md:translate-y-0 opacity-100"
+
+              class="flex md:h-full h-[75%] w-96 flex-col overflow-hidden border border-slate-300 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+            >
+              <!-- Dialog Header -->
+              <div class="flex items-center justify-between  p-3  dark:border-slate-700 dark:bg-slate-900/20">
+                <h3
+                  id="defaultModalTitle"
+                  class="font-semibold tracking-wide text-black w-full text-center dark:text-white"
+                >
+                  Filter
+                </h3>
+                <button @click="modalIsOpen = false" aria-label="close modal">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    stroke="currentColor"
+                    fill="none"
+                    stroke-width="1.4"
+                    class="w-5 h-5"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Dialog Content -->
+              <div class="px-3 pt-4 h-screen scroll-hide overflow-y-auto">
+                <div class=" w-full">
+                  <div class="h-screen">
+                    {% render 'search-filter' %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div
+    class=""
+  >
+    <!-- Header Section -->
+
+    <!-- Main Layout with Sidebar and Product Grid -->
+    <div class=" ">
+      <!-- Sidebar Filter Section -->
+
+      <!-- Product Grid -->
+      {% paginate search.results by 50 %}
+        <section class="">
+          {%- if search.terms == blank -%}
+            <form action="{{ routes.search_url }}" method="get" role="search">
+              <div class="field relative items-center">
+                <div class="md:box flex justify-between py-8">
+                  <input
+                    class="field__input m-auto w-[50%] md:p-2 border border-gray-300 rounded-md"
+                    id="Search"
+                    type="search"
+                    name="q"
+                    value="{{ search.terms | escape }}"
+                    role="combobox"
+                    aria-expanded="false"
+                    aria-owns="predictive-search-results"
+                    aria-controls="predictive-search-results"
+                    aria-haspopup="listbox"
+                    aria-autocomplete="list"
+                  >
+                </div>
+
+                <input class="box" name="options[prefix]" type="hidden" value="last">
+
+                <div id="predictive-search" tabindex="-1"></div>
+              </div>
+            </form>
+          {%- endif -%}
+
+          <div
+            id="ProductGridContainer"
+            class=" grid {{ section.settings.column_tablet }} {{ section.settings.column_desktop }} gap-{{ section.settings.column_gap }}"
+          >
+            {%- for item in search.results -%}
+              {%- case item.object_type -%}
+                {%- when 'product' -%}
+                  {% comment %} {%- capture product_settings -%}{%- if section.settings.product_show_vendor -%}vendor,{%- endif -%}title,price{%- endcapture -%} {% endcomment %}
+
+                  {% render 'card-product',
+                    card_product: item,
+                    show_secondary_image: section.settings.show_secondary_image,
+                    section_id: section.id,
+                    card_text_alignment: settings.card_text_alignment
+                  %}
+
+                {%- when 'article' -%}
+                  {% render 'article-card',
+                    article: item,
+                    show_image: true,
+                    show_date: section.settings.article_show_date,
+                    show_author: section.settings.show_author,
+                    show_badge: true,
+                    media_aspect_ratio: 1
+                  %}
+
+                {%- when 'page' -%}
+                  <div class="card-wrapper underline-links-hover">
+                    <div
+                      class="card card--card card--text ratio color-{{ settings.card_color_scheme }}"
+                      style="--ratio-percent: 100%;"
+                    >
+                      <div class="card__content p-4">
+                        <div class="card__information">
+                          <h3 class="text-lg font-semibold mb-2">
+                            <a href="{{ item.url }}" class="text-blue-600 hover:underline">
+                              {{ item.title | truncate: 50 | escape }}
+                            </a>
+                          </h3>
+                        </div>
+                        <div class="card__badge {{ settings.badge_position }}">
+                          <span class="badge bg-blue-500 text-white  py-1 rounded">
+                            {{- 'templates.search.page' | t -}}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+              {%- endcase -%}
+            {%- endfor -%}
+          </div>
+
+          <!-- Pagination -->
+          {%- if paginate.pages > 1 -%}
+            <div class="mt-8">
+              {% render 'infinite-scroll',
+                next_page: paginate.next.url,
+                page_size: paginate.pages,
+                end_text: 'You reached the end...'
+              %}
+            </div>
+          {%- endif -%}
+        </section>
+      {% endpaginate %}
+    </div>
+  </div>
+</section>
+
+<!-- JavaScript for AJAX filter submission -->
+<script>
+  document.getElementById('filter-form').addEventListener('submit', function (event) {
+    event.preventDefault(); // Prevent the form from submitting the traditional way
+
+    const form = event.target;
+    const formData = new FormData(form);
+    const searchParams = new URLSearchParams(formData).toString();
+
+    fetch(form.action + '?' + searchParams, {
+      method: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest', // Indicates an AJAX request
+      },
+    })
+      .then((response) => response.text())
+      .then((html) => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const newProductGrid = doc.getElementById('ProductGridContainer').innerHTML;
+
+        // Replace the current product grid with the new one
+
+        document.getElementById('ProductGridContainer').innerHTML = newProductGrid;
+      })
+      .catch((error) => {
+        console.error('Error fetching filtered products:', error);
+      });
+  });
+
+  // Add event listener for sorting radio buttons
+  document.querySelectorAll('input[name="sort_by"]').forEach(function (input) {
+    input.addEventListener('change', function () {
+      document.getElementById('filter-form').submit(); // Submit the form to apply sorting
+    });
+  });
+
+  //toggle button function
+
+  document.getElementById('toggleButton').addEventListener('click', function () {
+    const productGrid = document.getElementById('ProductGridContainer');
+
+    if (productGrid.classList.contains('grid-cols-2')) {
+      // Remove the first class and add the second one
+      productGrid.classList.remove('grid-cols-2');
+      productGrid.classList.add('grid-cols-1');
+    } else {
+      // Otherwise, toggle back to the first class
+      productGrid.classList.remove('grid-cols-1');
+      productGrid.classList.add('grid-cols-2');
+    }
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Search result",
+  "enabled_on": {
+    "templates": ["search"]
+  },
+  "settings": [
+    {
+      "type": "header",
+      "content": "Product columns"
+    },
+    {
+      "type": "select",
+      "id": "column_desktop",
+      "label": "Desktop column",
+      "default": "lg:grid-cols-4",
+      "options": [
+        {
+          "value": "lg:grid-cols-2",
+          "label": "Two Column"
+        },
+        {
+          "value": "lg:grid-cols-3",
+          "label": "Three Columns"
+        },
+        {
+          "value": "lg:grid-cols-4",
+          "label": "Four Columns"
+        },
+        {
+          "value": "lg:grid-cols-5",
+          "label": "Five Columns"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "column_tablet",
+      "label": "Tablet column",
+      "default": "md:grid-cols-3",
+      "options": [
+        {
+          "value": "md:grid-cols-2",
+          "label": "Two Column"
+        },
+        {
+          "value": "md:grid-cols-3",
+          "label": "Three Columns"
+        },
+        {
+          "value": "md:grid-cols-4",
+          "label": "Four Columns"
+        },
+        {
+          "value": "md:grid-cols-5",
+          "label": "Five Columns"
+        }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "column_gap",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "default": 2,
+      "label": " Column Gap"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_filtering",
+      "default": true,
+      "label": "t:sections.main-collection-product-grid.settings.enable_filtering.label",
+      "info": "You can use the Shopify Search & Discovery app to custmize filters"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sorting",
+      "default": true,
+      "label": "t:sections.main-collection-product-grid.settings.enable_sorting.label"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Search result"
+    }
+  ]
+}
+{% endschema %}

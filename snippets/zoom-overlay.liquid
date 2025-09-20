@@ -1,0 +1,156 @@
+<div
+  x-show="openZoom"
+  x-cloak
+  class="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center"
+  @click.self="openZoom = false"
+  @keydown.escape.window="openZoom = false"
+  @keydown.arrow-left.window="navigatePrev()"
+  @keydown.arrow-right.window="navigateNext()"
+  x-data="
+    {
+      currentSlide: 0,
+      zoomLevel: 1,
+      panX: 0,
+      panY: 0,
+      isDragging: false,
+      startX: 0,
+      startY: 0,
+      init() {
+        this.currentSlide = this.findSlideIndex();
+        this.$watch('openZoom', (value) => {
+          if (!value) {
+            this.currentSlide = this.findSlideIndex();
+            this.resetZoom();
+          }
+        });
+      },
+      findSlideIndex() {
+        const currentId = parseInt('{{ media.id }}');
+        {% for media in product.media %}
+          if (parseInt('{{ media.id }}') === currentId) {
+            return {{ forloop.index0 }};
+          }
+        {% endfor %}
+        return 0;
+      },
+      navigateNext() {
+        this.resetZoom();
+        this.currentSlide = (this.currentSlide + 1) % {{ product.media.size }};
+      },
+      navigatePrev() {
+        this.resetZoom();
+        this.currentSlide = (this.currentSlide - 1 + {{ product.media.size }}) % {{ product.media.size }};
+      },
+      resetZoom() {
+        this.zoomLevel = 1;
+        this.panX = 0;
+        this.panY = 0;
+      }
+    }
+  "
+>
+  <div class="max-w-6xl max-h-screen relative">
+    <button @click="openZoom = false" class="absolute top-4 right-4 text-white text-2xl p-2 z-10">
+      <span aria-hidden="true">×</span>
+      <span class="sr-only">Close zoom</span>
+    </button>
+
+    <!-- Navigation Arrows -->
+    <button
+      @click="navigatePrev()"
+      class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full p-3 z-10 focus:outline-none"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+      <span class="sr-only">Previous image</span>
+    </button>
+
+    <button
+      @click="navigateNext()"
+      class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full p-3 z-10 focus:outline-none"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+      </svg>
+      <span class="sr-only">Next image</span>
+    </button>
+
+    <!-- Zoom Controls -->
+    <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-4 bg-black bg-opacity-50 rounded-full p-2 z-10">
+      <button @click="resetZoom()" class="text-white px-3 py-2 rounded-full hover:bg-gray-700">
+        <span>Reset</span>
+      </button>
+    </div>
+
+    <!-- Gallery Container -->
+    <div class="overflow-hidden max-h-screen max-w-full relative">
+      <!-- Render all product media as slides -->
+      {% for media in product.media %}
+        <div
+          x-show="currentSlide === {{ forloop.index0 }}"
+          class="w-full h-full"
+        >
+          <img
+            src="{{ media | image_url: width: 2500 }}"
+            alt="{{ media.alt | default: product.title | escape }}"
+            width="600"
+            height="800"
+            class="max-h-screen max-w-full object-contain transition-all duration-200 ease-out cursor-zoom-in"
+            :class="{ 'cursor-zoom-in': zoomLevel === 1, 'cursor-zoom-out': zoomLevel > 1, 'cursor-grab': zoomLevel > 1 && !isDragging, 'cursor-grabbing': zoomLevel > 1 && isDragging }"
+            :style="`transform: scale(${zoomLevel}) translate(${panX}px, ${panY}px);`"
+            @click="
+              if (zoomLevel === 1) {
+                // Zoom in centered on click position
+                const rect = $event.target.getBoundingClientRect();
+                const x = $event.clientX - rect.left - (rect.width / 2);
+                const y = $event.clientY - rect.top - (rect.height / 2);
+
+                // Set the zoom level
+                zoomLevel = 2.5;
+
+                // Adjust pan to center on click location
+                panX = -x / zoomLevel;
+                panY = -y / zoomLevel;
+              } else {
+                // Reset when clicked while zoomed
+                resetZoom();
+              }
+            "
+            @mousedown="
+              if (zoomLevel > 1) {
+                isDragging = true;
+                startX = $event.clientX;
+                startY = $event.clientY;
+                $event.preventDefault();
+              }
+            "
+            @mousemove="
+              if (isDragging && zoomLevel > 1) {
+                const deltaX = $event.clientX - startX;
+                const deltaY = $event.clientY - startY;
+                panX += deltaX / zoomLevel;
+                panY += deltaY / zoomLevel;
+                startX = $event.clientX;
+                startY = $event.clientY;
+              }
+            "
+            @mouseup="isDragging = false"
+            @mouseleave="isDragging = false"
+            @wheel.prevent="
+              if ($event.deltaY < 0) {
+                zoomLevel = Math.min(4, zoomLevel + 0.2);
+              } else {
+                zoomLevel = Math.max(1, zoomLevel - 0.2);
+                if (zoomLevel === 1) {
+                  panX = 0;
+                  panY = 0;
+                }
+              }
+            "
+          >
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>

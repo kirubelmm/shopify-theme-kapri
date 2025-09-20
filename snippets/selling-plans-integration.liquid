@@ -1,0 +1,113 @@
+{%- assign current_variant = product.selected_or_first_available_variant | default: product.variants.first -%}
+
+{% if product.selling_plan_groups.size > 0 %}
+  <div class="selling_plan_app_container" data-section-id="{{ section.id }}">
+    <script src="{{ 'selling-plans-integration.js' | asset_url }}" defer></script>
+    <style>
+      .selling_plan_theme_integration--hidden {
+        display: none;
+      }
+    </style>
+    {% for variant in product.variants %}
+      {% liquid
+        assign variant_price = variant.price | money_with_currency | escape
+        assign variant_compared_at_price = variant.compare_at_price | money_with_currency | escape
+      %}
+      {% if variant.selling_plan_allocations.size > 0 %}
+        <section
+          data-variant-id="{{ variant.id }}"
+          class="selling_plan_theme_integration {% if variant.id != current_variant.id %}selling_plan_theme_integration--hidden{% endif %}"
+        >
+          <fieldset>
+            {% if block.settings.supporting_text_title != blank %}
+              <legend>
+                {{ block.settings.supporting_text_title }}
+              </legend>
+            {% endif %}
+            <div>
+              {% unless product.requires_selling_plan %}
+                <div>
+                  <label>
+                    <input
+                      aria-label="One-time purchase. Product price {{ variant_price }}"
+                      type="radio"
+                      name="purchaseOption_{{ section.id }}_{{ variant.id }}"
+                      {% if variant.available == false %}
+                        disabled
+                      {% endif %}
+                      id="{{ section.id }}_one_time_purchase"
+                      data-radio-type="one_time_purchase"
+                      data-variant-id="{{ variant.id }}"
+                      data-variant-price="{{ variant_price }}"
+                      data-variant-compare-at-price="{{ variant_compared_at_price }}"
+                      checked
+                    >
+                    One-time purchase
+                  </label>
+                </div>
+              {% endunless %}
+              {% assign group_ids = variant.selling_plan_allocations | map: 'selling_plan_group_id' | uniq %}
+              {% for group_id in group_ids %}
+                {% liquid
+                  assign group = product.selling_plan_groups | where: 'id', group_id | first
+                  assign allocations = variant.selling_plan_allocations | where: 'selling_plan_group_id', group_id
+
+                  if forloop.first
+                    assign first_selling_plan_group = true
+                  else
+                    assign first_selling_plan_group = false
+                  endif
+                %}
+                <div>
+                  <div>
+                    <label>{{ group.name }}</label>
+                  </div>
+                  <ul>
+                    {% for allocation in allocations %}
+                      {% liquid
+                        if forloop.first and product.requires_selling_plan and first_selling_plan_group
+                          assign plan_checked = 'checked'
+                        else
+                          assign plan_checked = null
+                        endif
+
+                        assign allocation_price = allocation.price | money_with_currency | escape
+                        assign allocation_compared_at_price = allocation.compare_at_price | money_with_currency | escape
+                      %}
+
+                      <li>
+                        <label>
+                          <input
+                            type="radio"
+                            {% if variant.available == false %}
+                              disabled
+                            {% endif %}
+                            aria-label="{{ allocation.selling_plan.name }}. Product price {{ allocation_price }}"
+                            name="purchaseOption_{{ section.id }}_{{ variant.id }}"
+                            data-radio-type="selling_plan"
+                            data-selling-plan-id="{{ allocation.selling_plan.id }}"
+                            data-selling-plan-group-id="{{ section.id }}_{{ group_id }}_{{ variant.id }}"
+                            data-selling-plan-adjustment="{{ allocation.selling_plan.price_adjustments.size }}"
+                            data-variant-price="{{ allocation_price }}"
+                            data-variant-compare-at-price="{{ allocation_compared_at_price }}"
+                            {{ plan_checked }}
+                          >
+                          {{ allocation.selling_plan.name }}
+                        </label>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              {% endfor %}
+            </div>
+          </fieldset>
+        </section>
+      {% endif %}
+    {% endfor %}
+  </div>
+  <input
+    name="selling_plan"
+    class="selected-selling-plan-id"
+    type="hidden"
+  >
+{% endif %}

@@ -1,0 +1,212 @@
+{%- comment %}
+  Renders a product card
+
+  Accepts:
+  - card_product: {Object} Product Liquid object (optional)
+  - media_aspect_ratio: {String} Size of the product image card. Values are "square" and "portrait". Default is "square" (optional)
+  - show_secondary_image: {Boolean} Show the secondary image on hover. Default: false (optional)
+  - show_vendor: {Boolean} Show the product vendor. Default: false
+  - show_rating: {Boolean} Show the product rating. Default: false
+  - extend_height: {Boolean} Card height extends to available container space. Default: true (optional)
+  - lazy_load: {Boolean} Image should be lazy loaded. Default: true (optional)
+
+  Usage:
+  {% render 'card-product', show_vendor: section.settings.show_vendor %}
+{%- endcomment %}
+
+{%- if card_product and card_product != empty -%}
+  <div class="card-wrapper group block relative">
+    <div class="card">
+      {% if card_product.featured_media %}
+        {% assign image_class = '' %}
+        {% if card_product.media[1] != blank and show_secondary_image %}
+          {% assign image_class = image_class | append: 'group-hover:hidden' %}
+        {% endif %}
+
+        {% if settings.sale_badge %}
+          {%- if card_product.compare_at_price > card_product.price and card_product.available -%}
+            <span
+              id="NoMediaStandardBadge-{{ section_id }}-{{ card_product.id }}"
+              class="absolute z-20 badge badge--bottom-left p-1 mt-2 ml-2 uppercase text-xs font-medium bg-[#F4F4F5] "
+            >
+              {{- 'products.product.on_sale' | t -}}
+            </span>
+          {%- endif -%}
+        {% endif %}
+
+        {% if settings.quick_shop %}
+          {% capture modal_trigger %}
+
+            <span class="hidden {{ icon_class | default: default_trigger_class }}">
+            {% render 'icon-quickadd'  %}
+            </span>
+        
+        
+      {% endcapture %}
+
+          {% capture modal_content %}
+            
+    
+        {% render 'quick-cart-global', card_product: card_product, section_id: section_id %}
+    
+    {% endcapture %}
+          {% render 'popup-modal',
+            trigger: modal_trigger,
+            title: 'Quick View',
+            content: modal_content,
+            trigger_class: ' absolute quick_shop sm:block lg:hidden top-0 right-0 rounded-full z-10 transition-colors duration-200  ',
+            popup_button: '',
+            width_class: 'w-[400px] '
+          %}
+        {% endif %}
+
+        <div
+          x-data="{ show: false }"
+          @mouseenter="if (window.innerWidth >= 1024) show = true"
+          @mouseleave="show = false"
+          class="card_image relative overflow-hidden"
+        >
+          <a href="{{ card_product.url }}" class="block cursor-pointer relative group overflow-hidden">
+            <div class="media media--transparent media--hover-effect">
+              <!-- Primary image -->
+              <img
+                class="blur-up product_image-{{ section_id }} fixed-height w-full h-auto transition-all"
+                src="{{ card_product.featured_media | image_url: width: 900 }}"
+                data-src="{{ card_product.featured_media | image_url: width: 900 }}"
+                width="{{ card_product.featured_media.width }}"
+                height="{{ card_product.featured_media.height }}"
+                alt="{{ card_product.featured_media.alt | default: card_product.title | escape }}"
+                loading="lazy"
+              >
+
+              <!-- Secondary image (only if product has more than one media) -->
+
+              {%- if card_product.media[1] != null and settings.show_secondary_image -%}
+                <img
+                  src="{{ card_product.media[1] | image_url: width: 900 }}"
+                  alt="{{ card_product.media[1].alt | default: card_product.title | escape }}"
+                  class="product_image-{{ section_id }} fixed-height w-full h-auto absolute top-0 left-0 opacity-0 group-hover:opacity-100  transition-all scale-300 group-hover:scale-105"
+                  loading="eager"
+                  width="{{ image.width }}"
+                  height="{{ image.height }}"
+                >
+              {% endif %}
+            </div>
+          </a>
+
+          <!-- Overlay that appears on toggle and hover -->
+          <div
+            x-show="show quick_shop"
+            x-transition:enter="transform transition ease-out duration-300"
+            x-transition:enter-start="translate-y-full"
+            x-transition:enter-end="translate-y-0"
+            x-transition:leave="transform transition ease-in duration-200"
+            x-transition:leave-start="translate-y-0"
+            x-transition:leave-end="translate-y-full"
+            id="popup-{{ section_id }}"
+            class="popup m-1.5 p-1.5 backdrop-blur-md bg-white/70 hidden {% if settings.quick_shop %} lg:group-hover:flex flex-col justify-center h-auto absolute inset-x-0 bottom-0 {% endif %} "
+          >
+            <span class="poupchild  ">
+              {% render 'product-cart-overlay', card_product: card_product, section_id: section_id %}
+            </span>
+          </div>
+        </div>
+
+      {% else %}
+        <a href="{{ card_product.url }}" class="block cursor-pointer">
+          <div id="product_image-{{ section_id }}" class="card_image">
+            {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+          </div>
+        </a>
+      {% endif %}
+
+      <a href="{{ card_product.url }}" class="block {{ settings.card_text_alignment }} cursor-pointer">
+        <p class=" card__title px-2 font-medium pt-2 ">{{ card_product.title }}</p>
+
+        {% render '_price-element', product: card_product, class: 'px-2 text-gray-600 pb-2' %}
+      </a>
+    </div>
+
+    <div class="list-none box-border text-current border-0 bg-none cursor-pointer absolute top-0 right-0">
+      <!-- mobile layout -->
+    </div>
+  </div>
+{%- else -%}
+  <div class="card-wrapper border w-full group">
+    <div class="card">
+      <div class="card_image">
+        {{ placeholder_image | default: 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+      </div>
+
+      <h3 class="card__title p-2">Product Title</h3>
+
+      <div class="price__element px-2 pb-2 text-gray-600">
+        <div class="price__element-normal">$0.00</div>
+      </div>
+    </div>
+  </div>
+{%- endif %}
+
+<style>
+    .kirubelm{
+    top:0;
+
+    }
+
+    @media(max-width: 1024px){
+    .popup{
+
+      position: fixed;
+      height: 100vh;
+      justify-content: end;
+      background-color: rgba(0, 0, 0, 0);
+      z-index: 100;
+
+
+    }
+
+
+    }
+    @media(min-width: 1024px){
+      .popup{
+
+        position: absolute;
+
+
+      }
+
+      }
+     /* Popup div */
+     {% comment %} @media(max-width: 768px){
+     .popup {
+      display: none; /* Hidden by default */
+      position: fixed; /* Stays in place */
+      left: 50%;
+
+      transform: translate(-50%, -50%); /* Center the div */
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      z-index: 1000; /* Ensure it's above other content */
+      width: 300px;
+      text-align: center;
+      bottom: 0;
+    }
+
+    /* Show the popup */
+    .show-popup {
+      display: block;
+    }
+  } {% endcomment %}
+    .button-checkboxes-{{ section_id }} {
+      {% comment %} display: flex;
+      flex-wrap: wrap;
+      gap: 10px; {% endcomment %}
+    }
+
+
+    .add-to-cart-button:hover {
+      {% comment %} background-color: rgba(0, 0, 0, 0.7) ; {% endcomment %}
+    }
+</style>

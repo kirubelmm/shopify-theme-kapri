@@ -1,0 +1,262 @@
+{% style %}
+  .custom-transition {
+    transition-timing-function: cubic-bezier(1, 0, 0, 1);
+  }
+
+  @media (min-width: 1024px) {
+    .desktop-grid {
+      display: grid !important;
+      grid-template-columns: repeat({{ section.blocks.size }}, 1fr) !important;
+      gap: 2rem;
+    }
+
+    .desktop-grid > * {
+      width: 100% !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+
+  @media (min-width: 640px) and (max-width: 1023px) {
+    .slide-item {
+      width: 50% !important;
+    }
+  }
+{% endstyle %}
+
+<section
+  style="margin-top: {{ section.settings.section_spacing_top }}rem; margin-bottom: {{ section.settings.section_spacing_bottom }}rem;"
+>
+  <div
+    x-data="
+      {
+        currentIndex: 0,
+        autoplayInterval: null,
+        isPaused: false,
+        isMobile: window.innerWidth < 640,
+        isTablet: window.innerWidth >= 640 && window.innerWidth < 1024,
+        totalSlides: {{ section.blocks.size }},
+        maxIndex: Math.ceil({{ section.blocks.size }} / (window.innerWidth >= 640 && window.innerWidth < 1024 ? 2 : 1)) - 1,
+        shouldSlide: {{ section.blocks.size }} > 1,
+
+        init() {
+          if (this.shouldSlide && (this.isMobile || this.isTablet)) {
+            this.startAutoplay();
+          }
+
+          window.addEventListener('resize', () => {
+            this.isMobile = window.innerWidth < 640;
+            this.isTablet = window.innerWidth >= 640 && window.innerWidth < 1024;
+            this.maxIndex = Math.ceil(this.totalSlides / (this.isTablet ? 2 : 1)) - 1;
+
+            if (this.currentIndex > this.maxIndex) {
+              this.currentIndex = this.maxIndex;
+            }
+
+            if (!this.shouldSlide || (!this.isMobile && !this.isTablet)) {
+              if (this.autoplayInterval) clearInterval(this.autoplayInterval);
+            } else {
+              this.startAutoplay();
+            }
+          });
+        },
+
+        startAutoplay() {
+          if (!this.shouldSlide) return;
+          if (this.autoplayInterval) clearInterval(this.autoplayInterval);
+
+          this.autoplayInterval = setInterval(() => {
+            if (!this.isPaused && (this.isMobile || this.isTablet)) {
+              if (this.currentIndex >= this.maxIndex) {
+                this.currentIndex = 0;
+              } else {
+                this.currentIndex++;
+              }
+            }
+          }, 3000);
+        }
+      }
+    "
+    x-init="init()"
+    @mouseover="shouldSlide && isPaused = true"
+    @mouseout="shouldSlide && isPaused = false"
+    class="relative w-full "
+  >
+    <div class="mx-auto lg:px-10 px-4 py-6">
+      <!-- Title and Description -->
+      <div class="text-center mb-8">
+        <h2 class="text-gray-900 mb-4 uppercase {{ section.settings.header_font }}">
+          {{ section.settings.title }}
+        </h2>
+        <p class=" {{ section.settings.description_font }} max-w-2xl mx-auto leading-relaxed mb-4">
+          {{ section.settings.description }}
+        </p>
+      </div>
+
+      <!-- Main container -->
+      <div class="relative overflow-hidden">
+        <div
+          class="desktop-grid flex transition-all duration-500 custom-transition"
+          :style="(shouldSlide && (isMobile || isTablet)) ? { transform: `translateX(-${currentIndex * (isTablet ? 50 : 100)}%)` } : {}"
+        >
+          {% for block in section.blocks %}
+            <div class="slide-item flex-shrink-0 w-full" {{ block.shopify_attributes }}>
+              <div class="flex flex-col items-center mx-auto">
+                {{ block.settings.svgs }}
+                <h6 class="text-sm font-semibold ">{{ block.settings.title }}</h6>
+                <p class="text-sm text-center">{{ block.settings.text }}</p>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Navigation Dots - Only show if more than one slide -->
+      {% if section.blocks.size > 1 %}
+        <div
+          x-show="shouldSlide && (isMobile || isTablet)"
+          class="flex justify-center mt-4 gap-2"
+        >
+          <template x-for="index in maxIndex + 1" :key="index">
+            <button
+              @click="currentIndex = index - 1"
+              :class="{'bg-blue-600': currentIndex === index - 1, 'bg-gray-300': currentIndex !== index - 1}"
+              class="w-2 h-2 rounded-full transition-colors"
+              :aria-label="'Go to slide ' + index"
+            ></button>
+          </template>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Feature list",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": " Heading ",
+      "default": "Our Story"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description",
+      "default": "Explore men's golf apparel that blends classic style with modern fit and performance."
+    },
+    {
+      "type": "header",
+      "content": "Font Size"
+    },
+    {
+      "type": "select",
+      "id": "header_font",
+      "label": "Title Font Size",
+      "default": "text-2xl",
+      "options": [
+        {
+          "value": "text-xl",
+          "label": "Small"
+        },
+        {
+          "value": "text-2xl",
+          "label": "Medium"
+        },
+        {
+          "value": "text-3xl",
+          "label": "Large"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "description_font",
+      "label": "Description Font Size",
+      "default": "text-md",
+      "options": [
+        {
+          "value": "text-sm",
+          "label": "Small"
+        },
+        {
+          "value": "text-md",
+          "label": "Medium"
+        },
+        {
+          "value": "text-lg",
+          "label": "Large"
+        }
+      ]
+    },
+
+    {
+      "type": "header",
+      "content": "Section Spacing"
+    },
+
+    {
+      "type": "range",
+      "id": "section_spacing_top",
+      "label": "Top Spacing",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "section_spacing_bottom",
+      "label": "Bottom Spacing",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Slide",
+      "settings": [
+        {
+          "type": "textarea",
+          "id": "svgs",
+          "label": "Icon SVG Code"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Free shipping"
+        },
+
+        {
+          "type": "textarea",
+          "id": "text",
+          "label": "Description",
+          "default": "Free us intercontinental shipping "
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Feature list",
+      "blocks": [
+        {
+          "type": "slide"
+        },
+        {
+          "type": "slide"
+        },
+        {
+          "type": "slide"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

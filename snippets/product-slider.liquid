@@ -1,0 +1,275 @@
+<!-- Slider Component -->
+<div
+  class=" alpine-component overflow-x-hidden "
+  @keydown.right="next"
+  @keydown.left="prev"
+  tabindex="0"
+  x-data="SliderComponent"
+  x-init="init()"
+  role="region"
+  aria-labelledby="product-carousel"
+>
+  <div x-cloak class=" flex titlepadding-{{ section.id }} mb-8 justify-between">
+    <div class="flex justify-between md:w-auto">
+      <h1
+        class="my-auto uppercase  {{ section.settings.header_font }} {{ section.settings.mobile_header_font }}"
+        id="font-setting-{{ section.id }}"
+      >
+        {{ section.settings.heading | escape }}
+      </h1>
+    </div>
+
+    <span class="flex my-auto gap-6 ">
+      {%- if section.settings.viewall -%}
+        <a
+          href="{{ viewall_url }}"
+          class="font-medium my-auto md:text-sm text-xs w-max  "
+        >
+          Discover All
+        </a>
+      {% endif %}
+
+      <!-- Navigation Controls -->
+
+      {% if show_navigation and section.settings.slider %}
+        {% unless section.type == 'product-recommendations' %}
+          <span class="hidden md:flex my-auto gap-2 justify-end">
+            <button
+              @click="prev"
+              :class="hasPrev ? 'bg-black shadow-md' : 'bg-gray-300 shadow-none'"
+              class="text-3xl font-medium group rounded-full size-8 flex items-center justify-center transition-shadow duration-300"
+            >
+              <span aria-hidden="true">{% render 'icon-cheveron-left' %}</span>
+              <span class="sr-only">Previous slide</span>
+            </button>
+
+            <button
+              @click="next"
+              :class="hasNext ? 'bg-black shadow-md' : 'bg-gray-300 shadow-none'"
+              class="text-3xl font-medium group rounded-full size-8 flex items-center justify-center transition-shadow duration-300"
+            >
+              <span aria-hidden="true">{% render 'icon-cheveron-right' %}</span>
+              <span class="sr-only">Next slide</span>
+            </button>
+          </span>
+        {% endunless %}
+      {% endif %}
+    </span>
+  </div>
+
+  <template x-if="true">
+    <div
+      class=" {% if section.settings.slider %} min-h-96 flex w-full scroll-hide pb-8 scroll-smooth carousel snap-x snap-mandatory {% else %} grid  {% endif %} column_gap-{{ section.id }}"
+      style="scroll-padding: 0px; height: auto; "
+      x-ref="slider"
+      role="list"
+      id="column_range-{{ section.id }}"
+    >
+      {{ content }}
+    </div>
+  </template>
+</div>
+
+{%- style -%}
+          .section-spacing-{{ section.id }}{
+    padding-top: {{ section.settings.secpadtop }}em ;
+    padding-bottom: {{ section.settings.secpadbottom }}em ;
+  }
+
+
+
+    #column_range-{{ section.id }} {
+
+
+        {% if section.settings.slider %}
+
+          display:flex;
+
+
+                flex: 0 0 calc(100% / {{ section.settings.column_desktop }}.5);
+
+                @media (max-width: 767px) {
+                  flex: 0 0 calc(100% / {{ section.settings.column_mobile }}.1);
+                }
+
+
+
+  {% else %}
+
+
+        grid-template-columns: repeat({{ section.settings.column_desktop }}, 1fr);
+        @media (max-width: 767px) {
+          grid-template-columns: repeat({{ section.settings.column_mobile }}, 1fr); }
+
+          {% endif %}}
+
+
+
+          .column_gap-{{ section.id }}{
+            gap: {{section.settings.column_gap}}px;
+          }
+
+
+          {% if section.settings.autoheight_image == false %}
+                        /* Your mobile styles here */
+  @media (max-width: 767px) {
+
+  .product_image-{{ section.id }} {
+    height: {{section.settings.mobile_card_height}}px;
+    width: 100%;
+    object-fit: cover; /* Ensure the image maintains aspect ratio and doesn't stretch */
+  }
+
+
+  }
+
+  /* Your desktop styles here */
+  @media (min-width: 768px) {
+  .product_image-{{ section.id }} {
+    height: {{section.settings.card_height}}px;
+    width: 100%;
+    object-fit: cover; /* Ensure the image maintains aspect ratio and doesn't stretch */
+  }
+  }
+  {% endif %}
+{%- endstyle -%}
+
+<style>
+    /* Horizontal scrolling for the blog section */
+     {% comment %} .scroll-hide {
+      overflow: hidden; /* Hide scrollbar and disable scrolling */
+      overflow-x: auto; /* Allow horizontal scrolling */
+       -ms-overflow-style: none; /* Hide scrollbar for Internet Explorer and Edge */
+      scrollbar-width: thin; /* Hide scrollbar for Firefox */
+    }
+
+     .scroll-hide::-webkit-scrollbar {
+      display: none; /* Hide scrollbar for WebKit browsers (Chrome, Safari) */
+    }   {% endcomment %}
+
+
+    .scroll-hide{
+
+      overflow-x: auto; /* Allow horizontal scrolling */
+
+
+    }
+
+
+    .scroll-hide::-webkit-scrollbar-track
+  {
+  	-webkit-box-shadow: inset 0 0 2px rgba(0,0,0,0.3);
+  	background-color: #f1f5f9;
+
+  }
+
+  .scroll-hide::-webkit-scrollbar
+  {
+
+    height: 2px;
+  }
+
+  {% if section.settings.scroll_bar == false %}
+  #shopify-section-{{ section.id }} .scroll-hide::-webkit-scrollbar {
+    display: none;
+  }
+  {% endif %}
+
+  .scroll-hide::-webkit-scrollbar-thumb
+  {
+  	background-color: #1e1b4b;
+
+
+  }
+
+
+
+
+    .flex {
+      display: flex;
+    }
+
+    .snap-x {
+      scroll-snap-type: x mandatory;
+    }
+
+    {% comment %} .snap-center {
+      scroll-snap-align: center;
+    }
+    .snap-left{
+      scroll-snap-align: left;
+
+    } {% endcomment %}
+
+    /* Ensure shadows are visible */
+    .shadow-2xl {
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+    .shadow-none {
+      box-shadow: none;
+    }
+
+    /* Optional: Adjust transition if needed */
+    button {
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .scroll-smooth {
+      scroll-behavior: smooth;
+      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+      transition-duration: 500ms;
+    }
+</style>
+
+<script>
+  document.addEventListener('alpine:init', () => {
+    Alpine.data('SliderComponent', () => ({
+      slider: null,
+      scrollAmount: 200,
+      hasNext: false,
+      hasPrev: false,
+
+      init() {
+        // Wait until the window is fully loaded to guarantee slider dimensions:
+        window.addEventListener('load', () => {
+          this.setupSlider();
+        });
+      },
+
+      setupSlider() {
+        this.slider = this.$refs.slider;
+        // Get the width of a single slide (first child element)
+        this.scrollAmount = this.slider.children[0]?.offsetWidth || 0;
+        // Add the gap between slides (from your CSS gap setting)
+        const computedStyle = window.getComputedStyle(this.slider);
+        const gap = parseInt(computedStyle.gap) || 0;
+        this.scrollAmount += gap;
+
+        // Immediately update navigation state
+        this.updateNavigation();
+        // Listen to scroll events (for subsequent updates)
+        this.slider.addEventListener('scroll', this.updateNavigation.bind(this));
+      },
+
+      next() {
+        if (this.slider) {
+          this.slider.scrollBy({ left: this.scrollAmount, behavior: 'smooth' });
+          this.$nextTick(() => this.updateNavigation());
+        }
+      },
+
+      prev() {
+        if (this.slider) {
+          this.slider.scrollBy({ left: -this.scrollAmount, behavior: 'smooth' });
+          this.$nextTick(() => this.updateNavigation());
+        }
+      },
+
+      updateNavigation() {
+        const maxScrollLeft = this.slider.scrollWidth - this.slider.clientWidth;
+        this.hasNext = this.slider.scrollLeft < maxScrollLeft - 1;
+        this.hasPrev = this.slider.scrollLeft > 0;
+      },
+    }));
+  });
+</script>

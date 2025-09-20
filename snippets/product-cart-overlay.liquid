@@ -1,0 +1,73 @@
+{% comment %}
+  <div
+    x-data="{ isDesktop: window.innerWidth >= 1024 }"
+    x-init="
+      window.addEventListener('resize', () => {
+          isDesktop = window.innerWidth >= 1024;
+      });
+    "
+  >
+    <div x-show="isDesktop" x-cloak>
+{% endcomment %}
+<ajax-cart-product-form>
+  <form
+    class="quick-add-form"
+    method="post"
+    action="/cart/add"
+    enctype="multipart/form-data"
+    data-product-id="{{ card_product.id }}"
+    {% if card_product.variants.size > 1 %}
+      data-variants="{{ card_product.variants | json | escape }}"
+      data-option-count="{{ card_product.options.size | default: 0 }}"
+    {% endif %}
+  >
+    {% if card_product.variants.size > 1 %}
+      {% for option in card_product.options_with_values %}
+        <div class="variant-option-group" data-option-position="{{ option.position }}">
+          <label class=" font-medium hidden mb-1">{{ option.name }}</label>
+          <div class="grid grid-cols-5 gap-1">
+            {% for value in option.values %}
+              <div class="inline-block">
+                <input
+                  type="radio"
+                  id="option-{{ section_id | default: 'prod' }}-{{ card_product.id }}-{{ option.position }}-{{ value | handleize }}"
+                  name="options[{{ option.name | escape }}]"
+                  value="{{ value | escape }}"
+                  class="peer hidden variant-option"
+                  data-option-position="{{ option.position }}"
+                  data-value="{{ value | escape }}"
+                  {% if option.selected_value == value %}
+                    checked
+                  {% endif %}
+                  required
+                >
+                <label
+                  for="option-{{ section_id | default: 'prod' }}-{{ card_product.id }}-{{ option.position }}-{{ value | handleize }}"
+                  class="inline-flex w-full bg-white text-xs font-semibold items-center justify-center px-3 py-2 border border-black/10 cursor-pointer transition peer-checked:border-blue-600 peer-checked:bg-black peer-checked:text-white hover:bg-black hover:text-white"
+                >
+                  {{ value }}
+                </label>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+      <input
+        type="hidden"
+        name="id"
+        class="selected-variant-id"
+        value="{{ card_product.selected_or_first_available_variant.id }}"
+      >
+      <div class="variant-error-message text-red-600 text-sm mt-2 hidden">Please select all options</div>
+    {% else %}
+      {% comment %} Single variant product - no options to select {% endcomment %}
+      <input type="hidden" name="id" value="{{ card_product.variants.first.id }}">
+    {% endif %}
+
+    <button type="submit" name="add" class="w-full bg-black text-white py-2 mt-2">Add to Bag</button>
+  </form>
+</ajax-cart-product-form>
+{% comment %}
+  </div>
+  </div>
+{% endcomment %}

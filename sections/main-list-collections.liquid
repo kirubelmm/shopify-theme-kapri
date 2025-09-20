@@ -1,0 +1,194 @@
+{% style %}
+  .placeholder-svg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 0.5px solid black;
+  }
+{% endstyle %}
+
+<section class="lg:px-10 px-4 section-spacing-{{ section.id }}">
+  <!-- Collections Section -->
+  <div class=" ">
+    {% capture slider_content %}
+      {% if section.settings.manual_collections != empty %}
+        {% for coll in section.settings.manual_collections %}
+          <div id="column_range-{{ section.id }}" class="snap-center group transition-all duration-500 ease-in-out">
+            <a href="{{ coll.url }}" class="w-full">
+              <div class="overflow-hidden">
+                {% if coll.image %}
+                  {{ coll.image | image_url: width: 1000 | image_tag: 
+                    class: 'w-full object-cover transform group-hover:scale-105 transition-transform duration-300', 
+                    alt: coll.title }}
+                {% else %}
+                  {%- assign random_index = forloop.index0 | modulo: 6 | plus: 1 -%}
+                  {{ 'collection-' | append: random_index | placeholder_svg_tag: 'placeholder-svg' }}
+                {% endif %}
+              </div>
+              <span class="flex justify-between md:px-2 py-2.5">
+                <h3 class="collection-title my-auto {{ section.settings.collection_font }} {{ section.settings.mobile_collection_font }}">
+                  {{ coll.title }}
+                </h3>
+                <span class="{% if section.settings.title_arrow == false %}hidden{% endif %} mr-4 group-hover:mr-0 transition-all duration-500 ease-in-out">
+                  {% render 'icon-arrow-right-v2' %}
+                </span>
+              </span>
+            </a>
+          </div>
+        {% endfor %}
+      {% else %}
+        {% for collection in collections %}
+          <div id="column_range-{{ section.id }}" class="snap-center group transition-all duration-500 ease-in-out">
+            <a href="{{ collection.url }}" class="w-full">
+              <div class="overflow-hidden">
+                {% if collection.image %}
+                  {{ collection.image | image_url: width: 1000 | image_tag: 
+                    class: 'w-full object-cover transform group-hover:scale-105 transition-transform duration-300', 
+                    alt: collection.title }}
+                {% else %}
+                  {%- assign random_index = forloop.index0 | modulo: 6 | plus: 1 -%}
+                  {{ 'collection-' | append: random_index | placeholder_svg_tag: 'placeholder-svg' }}
+                {% endif %}
+              </div>
+              <span class="flex justify-between md:px-2 py-2.5">
+                <h3 class="collection-title my-auto {{ section.settings.collection_font }} {{ section.settings.mobile_collection_font }}">
+                  {{ collection.title }}
+                </h3>
+                <span class="{% if section.settings.title_arrow == false %}hidden{% endif %} mr-4 group-hover:mr-0 transition-all duration-500 ease-in-out">
+                  {% render 'icon-arrow-right-v2' %}
+                </span>
+              </span>
+            </a>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endcapture %}
+
+    {% render 'product-slider',
+      content: slider_content,
+      section_id: section.id,
+      show_navigation: true,
+      show_quick_add: true
+    %}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Collections List",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "OUR COLLECTIONS"
+    },
+    {
+      "type": "collection_list",
+      "id": "manual_collections",
+      "label": "Manual Collection Selection",
+
+      "info": "Select collections manually. Leave empty to show all collections."
+    },
+    {
+      "type": "header",
+      "content": "Header Font Size"
+    },
+    {
+      "type": "select",
+      "id": "header_font",
+      "label": "Desktop Font Size",
+      "default": "md:text-2xl",
+      "options": [
+        { "value": "md:text-xl", "label": "Small" },
+        { "value": "md:text-2xl", "label": "Medium" },
+        { "value": "md:text-3xl", "label": "Large" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "mobile_header_font",
+      "label": "Mobile Font Size",
+      "default": "text-lg",
+      "options": [
+        { "value": "text-md", "label": "Small" },
+        { "value": "text-lg", "label": "Medium" },
+        { "value": "text-xl", "label": "Large" }
+      ]
+    },
+    {
+      "type": "header",
+      "content": "Columns"
+    },
+    {
+      "type": "select",
+      "id": "column_desktop",
+      "label": "Desktop column",
+      "default": "2",
+      "options": [
+        { "value": "1", "label": "1 Column" },
+        { "value": "2", "label": "2 Columns" },
+        { "value": "3", "label": "3 Columns" },
+        { "value": "4", "label": "4 Columns" },
+        { "value": "5", "label": "5 Columns" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "column_mobile",
+      "label": "Mobile column",
+      "default": "1",
+      "options": [
+        { "value": "1", "label": "1 Column" },
+        { "value": "2", "label": "2 Columns" }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "column_gap",
+      "label": "Column gap",
+      "min": 1,
+      "max": 20,
+      "step": 1,
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "Title Font Size"
+    },
+    {
+      "type": "select",
+      "id": "collection_font",
+      "label": "Desktop Font Size",
+      "default": "md:text-sm",
+      "options": [
+        { "value": "md:text-sm", "label": "Small" },
+        { "value": "md:text-md", "label": "Medium" },
+        { "value": "md:text-lg", "label": "Large" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "mobile_collection_font",
+      "label": "Mobile Font Size",
+      "default": "text-md",
+      "options": [
+        { "value": "text-sm", "label": "Small" },
+        { "value": "text-md", "label": "Medium" },
+        { "value": "text-lg", "label": "Large" }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "title_arrow",
+      "default": true,
+      "label": "Enable Title Arrow"
+    }
+  ],
+  "presets": [
+    {
+      "name": "All Collections"
+    }
+  ]
+}
+{% endschema %}

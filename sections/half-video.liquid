@@ -1,0 +1,379 @@
+{%- style -%}
+  #desktop-{{ section.id }} {
+    background-image: url('{{ section.settings.desktop_banner | image_url }}');
+    background-size: cover;
+    background-position: center;
+  }
+
+
+
+  .video-overlay {
+    opacity: 0.{{ section.settings.video_overlay_opacity }};
+    background: {{ section.settings.video_background }};
+  }
+{%- endstyle -%}
+
+<script src="{{ 'button-decoration.js' | asset_url }}" defer></script>
+{{ 'button-decoration.css' | asset_url | stylesheet_tag }}
+
+<section
+  class="lg:px-10 px-4"
+  style="margin-top: {{ section.settings.section_spacing_top }}rem; margin-bottom: {{ section.settings.section_spacing_bottom }}rem;"
+>
+  <div
+    id=""
+    class="relative"
+    {% comment %} style="background-image: url('https://images.pexels.com/photos/1824570/pexels-photo-1824570.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');" {% endcomment %}
+  >
+    <div class="flex">
+      <div class="w-full  h-full z-0" x-data="videoPlayer" x-init="init">
+        <div id="align_div-{{ section.id }}" class="absolute p-4 md:hidden z-10 grid h-full w-full">
+          <div class="absolute inset-0  md:hidden video-overlay"></div>
+
+          <span class=" z-10 flex flex-col items-{{ section.settings.horizontal_alignment }} justify-{{ section.settings.vertical_alignment }}">
+            {% comment %} {% for block in section.blocks %} {% endcomment %}
+
+            {% if section.settings.title != blank %}
+              <h4 class="{{section.settings.header_font}} text-white ">{{ section.settings.title }}</h4>
+            {% endif %}
+
+            {% render 'countdown' %}
+
+            {% if section.settings.button_text != blank %}
+              <a href="{{ section.settings.button_link }}" class=" ">
+                <button
+                  class="
+                    {% if section.settings.button_style == 'underline' %} animate-underline-once relative inline-flex items-center justify-center uppercase text-base text-white font-semibold bg-transparent cursor-pointer transition duration-200 ease-in-out
+                    {% elsif section.settings.button_style == 'outline' %} bg-transparent text-white border-2 border-white border-transparent hover:bg-white hover:text-black hover:border-2 px-5 py-3 focus:outline-none focus:ring
+                     {% elsif section.settings.button_style == 'normal' %} bg-white text-black border-2 border-white hover:bg-transparent hover:text-white hover:border-white px-5 py-2.5 focus:outline-none focus:ring {% endif %}
+                  "
+                >
+                  {{ section.settings.button_text }}
+                </button>
+              </a>
+            {% endif %}
+
+            {% comment %} {% endfor %} {% endcomment %}
+          </span>
+        </div>
+
+        {% if section.settings.banner_video != blank %}
+          <!-- Play/Pause buttons -->
+          <button
+            id="playPauseBtn"
+            class="absolute md:bottom-5 bottom-3 md:left-5 left-3 z-10 rounded-full text-white opacity-60 transition hover:opacity-80 focus-visible:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 active:outline-offset-0"
+            x-data="{ playing: false }"
+            @click="playing = !playing"
+          >
+            <template x-if="playing">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+                class="md:size-8 size-6"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M2 10a8 8 0 1 1 16 0 8 8 0 0 1-16 0Zm6.39-2.908a.75.75 0 0 1 .766.027l3.5 2.25a.75.75 0 0 1 0 1.262l-3.5 2.25A.75.75 0 0 1 8 12.25v-4.5a.75.75 0 0 1 .39-.658Z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+            </template>
+            <template x-if="!playing">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+                class="md:size-8 size-6"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M2 10a8 8 0 1 1 16 0 8 8 0 0 1-16 0Zm5-2.25A.75.75 0 0 1 7.75 7h.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-.75.75h-.5a.75.75 0 0 1-.75-.75v-4.5Zm4 0a.75.75 0 0 1 .75-.75h.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-.75.75h-.5a.75.75 0 0 1-.75-.75v-4.5Z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+            </template>
+          </button>
+        {% endif %}
+
+        <div x-data="videoPlayer" x-init="init" class="absolute inset-0 hidden  md:hidden"></div>
+
+        {% if section.settings.banner_video != blank %}
+          {{
+            section.settings.banner_video
+            | video_tag:
+              autoplay: true,
+              loop: true,
+              muted: true,
+              controls: false,
+              image_size: '600x',
+              class: ' h-96 object-cover w-full'
+          }}
+        {% else %}
+          <div class="relative h-full w-[70%] m-auto flex items-center justify-center overflow-hidden">
+            <div class="w-full h-full">
+              {{ 'image' | placeholder_svg_tag: 'W-[400px] height m-auto' }}
+            </div>
+          </div>
+        {% endif %}
+
+        {% comment %} <div class=" inset-0 md:block hidden  video-overlay"></div> {% endcomment %}
+      </div>
+      <div id="desktop-{{ section.id }}" class="w-full h-auto hidden md:block">
+        <div id="align_div-{{ section.id }}" class="absolute z-10 p-4 m-auto grid h-full w-[50%]">
+          <div class="absolute inset-0 video-overlay "></div>
+          <span class=" space-y-2 z-10 flex flex-col items-{{ section.settings.horizontal_alignment }} justify-{{ section.settings.vertical_alignment }}">
+            {% if section.settings.title != blank %}
+              <h1 class="{{section.settings.header_font}} text-white w-auto">{{ section.settings.title }}</h1>
+            {% endif %}
+
+            {% render 'countdown' %}
+
+            {% assign link = section.settings.button_link %}
+
+            {% if section.settings.button_text != blank %}
+              <a href="{{ link }}" class="inline-block ">
+                <button
+                  class="
+                    {% if section.settings.button_style == 'underline' %} animate-underline-once relative inline-flex items-center justify-center uppercase text-base font-semibold text-white bg-transparent  cursor-pointer transition duration-200 ease-in-out
+                    {% elsif section.settings.button_style == 'outline' %} py-2 bg-transparent text-white  border-2 border-white border-transparent hover:bg-white hover:text-black hover:border-2 px-5
+                     {% elsif section.settings.button_style == 'normal' %} py-2 bg-white text-black border-2 border-white hover:bg-transparent hover:text-white hover:border-white px-5 focus:outline-none focus:ring {% endif %}
+                  "
+                >
+                  {{ section.settings.button_text }}
+                </button>
+              </a>
+            {% endif %}
+          </span>
+        </div>
+
+        {% comment %} <div class="absolute inset-0 image-overlay"></div> {% endcomment %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var section = document.getElementById('image-banner-{{ section.id }}');
+    var videoElement = section.querySelector('video');
+    var playPauseButton = section.querySelector('#playPauseBtn');
+
+    if (videoElement && playPauseButton) {
+      playPauseButton.addEventListener('click', function () {
+        if (videoElement.paused) {
+          videoElement.play();
+        } else {
+          videoElement.pause();
+        }
+      });
+    }
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Image & video banner",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Media"
+    },
+
+    {
+      "type": "video",
+      "id": "banner_video",
+      "label": "Banner Video"
+    },
+    {
+      "type": "image_picker",
+      "id": "desktop_banner",
+      "label": "Banner Image"
+    },
+
+    {
+      "type": "header",
+      "content": "Title"
+    },
+
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "THIS IS TITLE"
+    },
+    {
+      "type": "select",
+      "id": "header_font",
+      "label": "Font Size",
+      "default": "text-3xl",
+      "options": [
+        {
+          "value": "text-xl",
+          "label": "Small"
+        },
+        {
+          "value": "text-2xl",
+          "label": "Medium"
+        },
+        {
+          "value": "text-3xl",
+          "label": "Large"
+        }
+      ]
+    },
+
+    {
+      "type": "header",
+      "content": "Button"
+    },
+    {
+      "type": "url",
+      "label": "Button Link",
+      "id": "button_link",
+      "default": "/collections/all",
+      "info": "Select a URL, product, collection, or page link"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button text",
+      "default": "Shop Now"
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "Button Style",
+      "default": "normal",
+      "options": [
+        {
+          "value": "normal",
+          "label": "Normal"
+        },
+        {
+          "value": "outline",
+          "label": "Outline"
+        },
+        {
+          "value": "underline",
+          "label": "Underline"
+        }
+      ]
+    },
+
+    {
+      "type": "header",
+      "content": "Content Alignment"
+    },
+    {
+      "type": "select",
+      "id": "vertical_alignment",
+      "label": "Vertical alignment",
+      "options": [
+        { "value": "start", "label": "Top" },
+        { "value": "center", "label": "Center" },
+        { "value": "end", "label": "Bottom" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "select",
+      "id": "horizontal_alignment",
+      "label": "Horizontal alignment",
+      "options": [
+        { "value": "start", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "end", "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "header",
+      "content": "Overlay"
+    },
+    {
+      "type": "range",
+      "id": "video_overlay_opacity",
+      "min": 0,
+      "max": 95,
+      "step": 5,
+      "label": "Overlay Opacity",
+      "default": 30
+    },
+    {
+      "type": "color_background",
+      "id": "video_background",
+      "label": "Overlay color",
+      "default": "#000000"
+    },
+
+    {
+      "type": "header",
+      "content": "Countdown"
+    },
+
+    {
+      "type": "range",
+      "id": "days_duration",
+      "min": 0,
+      "max": 31,
+      "step": 1,
+      "unit": "day",
+      "label": "Days",
+      "default": 1
+    },
+    {
+      "type": "range",
+      "id": "hours_duration",
+      "min": 0,
+      "max": 23,
+      "step": 1,
+      "unit": "hr",
+      "label": "Hours",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "minutes_duration",
+      "min": 0,
+      "max": 59,
+      "step": 1,
+      "unit": "min",
+      "label": "Minutes",
+      "default": 0
+    },
+
+    {
+      "type": "header",
+      "content": "Section Spacing"
+    },
+
+    {
+      "type": "range",
+      "id": "section_spacing_top",
+      "label": "Top Spacing",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "section_spacing_bottom",
+      "label": "Bottom Spacing",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    }
+  ],
+
+  "presets": [
+    {
+      "name": "Image & video banner"
+    }
+  ]
+}
+{% endschema %}

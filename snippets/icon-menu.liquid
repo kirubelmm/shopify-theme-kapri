@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon icon-menu {{ class }}">
+  <line class="line-1" x1="1" y1="12" x2="23" y2="12"></line>
+  <line class="line-2" x1="1" y1="12" x2="23" y2="12"></line>
+</svg>
+
+<style>
+.icon-menu {
+  cursor: pointer;
+}
+
+.icon-menu .line-1,
+.icon-menu .line-2 {
+  transition: transform 0.3s ease;
+  transform-origin: center;
+}
+
+.icon-menu:not(.active) .line-1 {
+  transform: translateY(-5px);
+}
+
+.icon-menu:not(.active) .line-2 {
+  transform: translateY(5px);
+}
+
+.icon-menu.active .line-1 {
+  transform: rotate(45deg);
+}
+
+.icon-menu.active .line-2 {
+  transform: rotate(-45deg);
+}
+</style>
+
+<script>
+  document.querySelector('.icon-menu').addEventListener('click', function() {
+    this.classList.toggle('active');
+  });
+</script> 

@@ -1,0 +1,122 @@
+{% assign slide_count = 0 %}
+{% for block in section.blocks %}
+  {% for i in (1..3) %}
+    {% capture title_key %}slide_{{ i }}_title{% endcapture %}
+    {% capture desc_key %}slide_{{ i }}_description{% endcapture %}
+    {% if block.settings[title_key] != blank and block.settings[desc_key] != blank %}
+      {% assign slide_count = slide_count | plus: 1 %}
+    {% endif %}
+  {% endfor %}
+{% endfor %}
+
+{% if slide_count > 0 %}
+  <div class="slider-container relative w-full overflow-hidden bg-gray-100">
+    <div class="slider-wrapper flex bg-gray-100 p-2">
+      <div class="slider-content relative min-h-14 w-full">
+        {% assign current_slide = 1 %}
+        {% for block in section.blocks %}
+          {% for i in (1..3) %}
+            {% capture title_key %}slide_{{ i }}_title{% endcapture %}
+            {% capture desc_key %}slide_{{ i }}_description{% endcapture %}
+            {% assign title = block.settings[title_key] %}
+            {% assign description = block.settings[desc_key] %}
+            {% if title != blank and description != blank %}
+              <div
+                class="slide absolute inset-0 flex space-y-0.5 flex-col items-start p-2 h-full justify-center mr-1"
+                data-slide="{{ current_slide }}"
+                style="opacity: {% if current_slide == 1 %}1{% else %}0{% endif %}; z-index: {% if current_slide == 1 %}1{% else %}0{% endif %};"
+              >
+                <h6 class="text-md font-semibold">{{ title }}</h6>
+                <p class="text-md text-left">{{ description }}</p>
+              </div>
+              {% assign current_slide = current_slide | plus: 1 %}
+            {% endif %}
+          {% endfor %}
+        {% endfor %}
+      </div>
+
+      <div class="slider-navigation h-fit mt-auto mb-auto grid grid-flow-row gap-2" role="group" aria-label="slides">
+        {% assign current_slide = 1 %}
+        {% for block in section.blocks %}
+          {% for i in (1..3) %}
+            {% capture title_key %}slide_{{ i }}_title{% endcapture %}
+            {% capture desc_key %}slide_{{ i }}_description{% endcapture %}
+            {% assign title = block.settings[title_key] %}
+            {% assign description = block.settings[desc_key] %}
+            {% if title != blank and description != blank %}
+              <button
+                class="slider-dot size-2 cursor-pointer rounded-full transition bg-slate-700 {% if current_slide == 1 %}bg-slate-700{% else %}bg-slate-700/50{% endif %}"
+                data-slide="{{ current_slide }}"
+                aria-label="Go to slide {{ current_slide }}"
+              ></button>
+              {% assign current_slide = current_slide | plus: 1 %}
+            {% endif %}
+          {% endfor %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Simple slider functionality without Alpine.js
+      const sliderContainer = document.querySelector('.slider-container');
+      if (!sliderContainer) return;
+
+      const slides = sliderContainer.querySelectorAll('.slide');
+      const dots = sliderContainer.querySelectorAll('.slider-dot');
+      const slideCount = slides.length;
+      let currentSlide = 1;
+
+      // Set up dot click handlers
+      dots.forEach((dot) => {
+        dot.addEventListener('click', function () {
+          const slideNumber = parseInt(this.getAttribute('data-slide'));
+          goToSlide(slideNumber);
+        });
+      });
+
+      // Function to show a specific slide
+      function goToSlide(slideNumber) {
+        slides.forEach((slide) => {
+          const slideNum = parseInt(slide.getAttribute('data-slide'));
+          if (slideNum === slideNumber) {
+            slide.style.opacity = '1';
+            slide.style.zIndex = '1';
+          } else {
+            slide.style.opacity = '0';
+            slide.style.zIndex = '0';
+          }
+        });
+
+        dots.forEach((dot) => {
+          const dotNum = parseInt(dot.getAttribute('data-slide'));
+          if (dotNum === slideNumber) {
+            dot.classList.remove('bg-slate-700/50');
+            dot.classList.add('bg-slate-700');
+          } else {
+            dot.classList.remove('bg-slate-700');
+            dot.classList.add('bg-slate-700/50');
+          }
+        });
+
+        currentSlide = slideNumber;
+      }
+
+      // Auto-advance slides
+      function nextSlide() {
+        let next = currentSlide + 1;
+        if (next > slideCount) next = 1;
+        goToSlide(next);
+      }
+
+      // Start auto-slider
+      const intervalId = setInterval(nextSlide, 3000);
+
+      // Add transition effects for slides
+      slides.forEach((slide) => {
+        slide.style.transition = 'opacity 0.5s ease-in-out';
+      });
+    });
+  </script>
+{% endif %}

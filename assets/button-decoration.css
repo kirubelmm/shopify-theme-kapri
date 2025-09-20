@@ -1,0 +1,39 @@
+@keyframes disappearReappear {
+    0% {
+      transform: scaleX(1);
+      transform-origin: right;
+    }
+    50% {
+      transform: scaleX(0);
+      transform-origin: right;
+    }
+    50.01% {
+      transform: scaleX(0);
+      transform-origin: left;
+    }
+    100% {
+      transform: scaleX(1);
+      transform-origin: left;
+    }
+  }
+
+  .animate-underline-once::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background-color: white;
+    transform: scaleX(1);
+  }
+
+  /* On hover, run the animation once */
+  .animate-underline-once:hover::after {
+    animation: disappearReappear 1s ease-in-out forwards;
+  }
+
+  /* When the play-animation class is added, run the animation once on load */
+  .animate-underline-once.play-animation::after {
+    animation: disappearReappear 1s ease-in-out forwards;
+  }

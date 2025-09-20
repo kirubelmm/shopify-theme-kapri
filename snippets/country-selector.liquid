@@ -1,0 +1,126 @@
+<div
+  x-data="
+    {
+        modalIsOpen: false,
+        init() {
+            this.$watch('modalIsOpen', value => {
+                if (value) {
+                    document.body.classList.add('overflow-hidden');
+                } else {
+                    document.body.classList.remove('overflow-hidden');
+                }
+            });
+        }
+    }
+  "
+>
+  <button
+    @click="modalIsOpen = true"
+    type="button"
+    class="cursor-pointer flex justify-center whitespace-nowrap text-center text-sm font-medium tracking-wide text-slate-100 transition hover:opacity-75"
+  >
+    {% render 'icon-globe' %}
+  </button>
+  <div
+    x-cloak
+    x-show="modalIsOpen"
+    x-trap.inert.noscroll="modalIsOpen"
+    @keydown.esc.window="modalIsOpen = false"
+    @click.self="modalIsOpen = false"
+    class="fixed inset-0 z-30 flex items-end justify-end bg-black/20 backdrop-blur-md sm:items-center"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="defaultModalTitle"
+  >
+    <!-- Modal Dialog -->
+    <div
+      x-show="modalIsOpen"
+      x-transition:enter="transform transition ease-[cubic-bezier(1,0,0,1)] duration-[500ms]"
+      x-transition:enter-start="translate-x-full opacity-100"
+      x-transition:enter-end="translate-x-0 opacity-100"
+      x-transition:leave="transform transition ease-[cubic-bezier(1,0,0,1)] duration-[500ms]"
+      x-transition:leave-start="translate-x-0 opacity-100"
+      x-transition:leave-end="translate-x-full opacity-100"
+      class="flex h-screen w-96 flex-col overflow-hidden border border-slate-300 bg-white text-slate-700 "
+    >
+      <!-- Dialog Header -->
+      <div class="flex items-center justify-between  p-3 shadow-sm ">
+        <h3 id="defaultModalTitle" class="font-semibold tracking-wide text-black ">Select Your Country</h3>
+        <button @click="modalIsOpen = false" aria-label="close modal">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            stroke="currentColor"
+            fill="none"
+            stroke-width="1.4"
+            class="w-5 h-5"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <!-- Dialog Body -->
+      <div
+        class="px-4 overflow-y-auto scroll-hide scroll-smooth "
+        x-data="
+          {
+              selectCountry(iso_code) {
+                  document.getElementById('countryForm').elements['country_code'].value = iso_code;
+                  document.getElementById('countryForm').submit();
+              }
+          }
+        "
+      >
+        <div class="py-4">
+          <!-- Country List -->
+          <div x-data="{ searchQuery: '' }">
+            <!-- Search Bar -->
+            <div class="mb-4">
+              <input
+                type="text"
+                x-model="searchQuery"
+                placeholder="Search countries"
+                class="w-full p-2 border border-gray-300  bg-white  text-gray-700  focus:outline-none focus:ring-1 focus:ring-gray-100"
+              >
+            </div>
+
+            <!-- Country List -->
+            <ul class="space-y-2">
+              {% for country in localization.available_countries %}
+                <li
+                  x-show="searchQuery === '' || '{{ country.name | downcase }}'.includes(searchQuery.toLowerCase())"
+                  class="flex items-center cursor-pointer hover:bg-gray-100  p-2 rounded"
+                  @click="selectCountry('{{ country.iso_code }}')"
+                >
+                  <span class="text-gray-700 ">{{ country.name }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+
+        <!-- Hidden Form for Country Selection -->
+        {% form 'localization', id: 'countryForm' %}
+          <input type="hidden" name="country_code" value="">
+        {% endform %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .scroll-hide::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.3);
+    background-color: #f1f5f9;
+  }
+
+  .scroll-hide::-webkit-scrollbar {
+    width: 4px;
+    background-color: yellow;
+  }
+
+  .scroll-hide::-webkit-scrollbar-thumb {
+    background-color: #1e1b4b;
+  }
+</style>

@@ -1,0 +1,142 @@
+{% comment %}
+  Renders product variant-picker
+
+  Accepts:
+  - product: {Object} product object.
+  - block: {Object} passing the block information.
+  - product_form_id: {String} Id of the product form to which the variant picker is associated.
+  Usage:
+  {% render 'product-variant-picker', product: product, block: block, product_form_id: product_form_id %}
+{% endcomment %}
+
+{%- unless product.has_only_default_variant -%}
+  {%- if block.settings.picker_type == 'button' -%}
+    <variant-radios
+      class="no-js-hidden space-y-2 block "
+      data-section="{{ section.id }}"
+      data-url="{{ product.url }}"
+      {{ block.shopify_attributes }}
+    >
+      {%- for option in product.options_with_values -%}
+        <fieldset class="js product-form__input ">
+          <legend class="form__label font-medium leading-tight text-gray-500 text-xs pb-2">
+            Select a {{ option.name }}
+          </legend>
+          <div class="grid grid-cols-[repeat(auto-fill,minmax(50px,1fr))] gap-{{ block.settings.variantgap }} ">
+            {%- for value in option.values -%}
+              <input
+                class="sr-only"
+                type="radio"
+                id="{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}"
+                name="{{ option.name }}"
+                value="{{ value | escape }}"
+                form="{{ product_form_id }}"
+                {% if option.selected_value == value %}
+                  checked
+                {% endif %}
+              >
+
+              {% assign valid_names_str = '' %}
+              {% for block in section.blocks %}
+                {% assign valid_names_str = valid_names_str | append: block.settings.varianttitle | append: ',' %}
+              {% endfor %}
+              {% assign valid_names = valid_names_str | split: ',' %}
+
+              {% if valid_names contains option.name %}
+                <label
+                  for="{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}"
+                  class="{% for block in section.blocks %}{{ block.settings.variantborderradius }}{% endfor %} border overflow-hidden inline-block text-sm text-center border-gray-700 cursor-pointer "
+                  style="
+                                                                                                                                                                                    background-image: url({{ product.variants[forloop.index0].image | image_url: width: 300 }}); {% for block in section.blocks %} height: {{ block.settings.variantheight }}px; width: {{ block.settings.variantwidth }}px; {% endfor %} background-size: cover; background-color: '{{ option.name | downcase }}';
+                  "
+                ></label>
+
+              {% else %}
+                <label
+                  class="border p-2 inline-block text-xs font-medium uppercase text-center border-gray-200 hover:border-black cursor-pointer"
+                  for="{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}"
+                >
+                  {{ value }}
+                </label>
+              {% endif %}
+            {%- endfor -%}
+          </div>
+        </fieldset>
+      {%- endfor -%}
+      <script type="application/json">
+        {{ product.variants | json }}
+      </script>
+    </variant-radios>
+  {%- else -%}
+    <variant-selects
+      class="no-js-hidden"
+      form="{{ product_form_id }}"
+      data-section="{{ section.id }}"
+      data-url="{{ product.url }}"
+      {{ block.shopify_attributes }}
+    >
+      {%- for option in product.options_with_values -%}
+        <div class="product-form__input product-form__input--dropdown">
+          <label
+            for="Option-{{ section.id }}-{{ forloop.index0 }}"
+            class="block mb-1 text-sm font-medium text-gray-700"
+          >
+            {{ option.name }}
+          </label>
+          <div class="relative">
+            <select
+              id="Option-{{ section.id }}-{{ forloop.index0 }}"
+              name="options[{{ option.name | escape }}]"
+              form="{{ product_form_id }}"
+              class="w-full appearance-none rounded-sm border border-neutral-300 bg-neutral-50 px-4 py-2 text-sm transition hover:border-neutral-400 focus:border-neutral-800"
+            >
+              {%- for value in option.values -%}
+                <option
+                  value="{{ value | escape }}"
+                  {% if option.selected_value == value %}
+                    selected
+                  {% endif %}
+                >
+                  {{ value }}
+                </option>
+              {%- endfor -%}
+            </select>
+            <!-- caret icon -->
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+              {% render 'icon-caret' %}
+            </div>
+          </div>
+        </div>
+      {%- endfor -%}
+      <script type="application/json">
+        {{ product.variants | json }}
+      </script>
+    </variant-selects>
+  {%- endif -%}
+{%- endunless -%}
+
+<noscript class="product-form__noscript-wrapper-{{ section.id }}">
+  <div class="product-form__input{% if product.has_only_default_variant %} hidden{% endif %}">
+    <label class="form__label" for="Variants-{{ section.id }}">{{ 'products.product.product_variants' | t }}</label>
+    <div class="select">
+      <select name="id" id="Variants-{{ section.id }}" class="select__select" form="{{ product_form_id }}">
+        {%- for variant in product.variants -%}
+          <option
+            {% if variant == product.selected_or_first_available_variant %}
+              selected="selected"
+            {% endif %}
+            {% if variant.available == false %}
+              disabled
+            {% endif %}
+            value="{{ variant.id }}"
+          >
+            {{ variant.title }}
+            {%- if variant.available == false %} - {{ 'products.product.sold_out' | t }}{% endif %}
+            - {{ variant.price | money | strip_html }}
+          </option>
+        {%- endfor -%}
+      </select>
+      {% render 'icon-caret' %}
+    </div>
+  </div>
+</noscript>

@@ -1,0 +1,50 @@
+<div
+  class=" px-4"
+  @cart-updated.window="updateCart;"
+  x-data="
+    {
+      loading: false,
+      updateCart(){
+          // send fetch reqeust to update cart
+          fetch('/?view=cart-page')
+          .then(response => response.text())
+          .then(cartData => {
+              $refs.cart_content.innerHTML = cartData;
+              // This code is use to parse json object. for cart count
+              var el = document.createElement('div');
+              el.innerHTML = cartData;
+              var cartCount = JSON.parse(el.querySelector('[data-options]').innerHTML).item_count;
+              $dispatch('cart-count-updated', cartCount);
+              this.loading = false;
+          })
+      }
+    }
+  "
+>
+  <div class="py-4 flex items-center justify-between">
+    <h1 class="title text-3xl">{{ 'sections.cart.title' | t }}</h1>
+    <a href="{{ routes.all_products_collection_url }}" class="underline py-2">{{ 'general.continue_shopping' | t }}</a>
+  </div>
+
+  <hr>
+
+  {% render 'loader' %}
+
+  <div class="" x-ref="cart_content">
+    {% render 'cart-page-form' %}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.main-cart-items.name",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "notes",
+      "default": true,
+      "label": "Special Notes"
+    }
+  ]
+}
+{% endschema %}

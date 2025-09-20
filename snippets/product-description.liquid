@@ -1,0 +1,103 @@
+{% comment %}   
+  <!-- Product Description Toggle -->
+  <div class="mt-4" x-data="{ showDescriptionDrawer: false }">
+    <!-- Trigger Button -->
+    <button 
+        @click="showDescriptionDrawer = !showDescriptionDrawer" 
+        class="text-left w-full flex items-center justify-between border-t border-b border-gray-200 py-4 text-sm font-medium text-gray-700">
+        Description
+    </button>
+    <template x-if="true">
+    <!-- Description Drawer -->
+    <div class="fixed inset-0 overflow-hidden z-20"
+        x-show="showDescriptionDrawer"
+        aria-labelledby="slide-over-title" role="dialog" aria-modal="true">
+        <div class="absolute inset-0 overflow-hidden">
+            <div class="absolute inset-0 bg-gray-500 bg-opacity-75" 
+                x-show="showDescriptionDrawer" 
+                x-transition.opacity 
+                @click="showDescriptionDrawer = false" 
+                aria-hidden="true"></div>
+            
+            <!-- Mobile Drawer -->
+            <div class="fixed inset-x-0 bottom-0 min-h-[80%] w-full md:hidden flex"
+                x-show="showDescriptionDrawer"
+                x-transition:enter="transform transition ease-in-out duration-500"
+                x-transition:enter-start="translate-y-full opacity-0"
+                x-transition:enter-end="translate-y-0 opacity-100"
+                x-transition:leave="transform transition ease-in-out duration-500"
+                x-transition:leave-start="translate-y-0 opacity-100"
+                x-transition:leave-end="translate-y-full opacity-0">
+                <!-- Mobile drawer content -->
+                <div class="relative w-full bg-white shadow-xl overflow-y-scroll p-4">
+                    <div class="absolute top-0 right-0 pt-4 pr-4">
+                        <button type="button" @click="showDescriptionDrawer = false" class="rounded-md text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                            <span class="sr-only">Close panel</span>
+                            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <h2 class="text-lg font-medium text-gray-900" id="slide-over-title">Product Description</h2>
+                    <div class="mt-6">
+                        <p>{{ product.description }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Desktop Drawer -->
+            <div class="fixed inset-y-0 right-0 max-w-full flex hidden md:flex"
+                x-show="showDescriptionDrawer"
+                x-transition:enter="transform transition ease-in-out duration-500 sm:duration-700"
+                x-transition:enter-start="translate-x-full opacity-0"
+                x-transition:enter-end="translate-x-0 opacity-100"
+                x-transition:leave="transform transition ease-in-out duration-500 sm:duration-700"
+                x-transition:leave-start="translate-x-0"
+                x-transition:leave-end="translate-x-full opacity-0">
+                <!-- Desktop drawer content -->
+                <div class="relative w-screen max-w-xs md:max-w-md">
+                    <div class="absolute top-0 left-0 -ml-8 pt-4 pr-2 flex sm:-ml-10 sm:pr-4">
+                        <button type="button" @click="showDescriptionDrawer = false" class="rounded-md text-white hover:text-white focus:outline-none focus:ring-2 focus:ring-white">
+                            <span class="sr-only">Close panel</span>
+                            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="h-full flex flex-col bg-white shadow-xl overflow-y-scroll p-4">
+                        <h2 class="text-lg font-medium text-gray-900" id="slide-over-title">Product Description</h2>
+                        <div class="mt-6">
+                            <p>{{ product.description }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+  </div>
+   {% endcomment %}
+
+   {% capture modal_trigger %}
+
+    
+        Description
+    
+    
+  {% endcapture %}
+
+
+
+   {% capture modal_content %}
+
+    <p>{{ product.description }}</p>
+
+{% endcapture %}
+{% render 'popup-modal',
+  trigger: modal_trigger,
+  title: 'Description',
+  content: modal_content,
+  trigger_class: ' text-left w-full border-t border-b border-gray-200 py-4 text-sm font-medium text-gray-700  ',
+  popup_button: '',
+  width_class: 'w-[400px] ',
+%}

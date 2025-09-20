@@ -1,0 +1,154 @@
+<infinite-scroll data-next="{{ next_page }}" data-page-size="{{ page_size }}" data-end-text="{{ end_text }}">
+    {% if page_size > 1 %}
+      <!-- Loader for JavaScript-enabled browsers -->
+      <div class="loader"></div>
+    {% endif %}
+  </infinite-scroll>
+  
+  <!-- Fallback pagination for non-JS crawlers/users -->
+  <noscript>
+    <ul class="fallback-pagination">
+      {% for page in (1..page_size) %}
+        <li><a href="{{ shop.url }}/{{ next_page }}?page={{ page }}">Page {{ page }}</a></li>
+      {% endfor %}
+    </ul>
+  </noscript>
+  
+  <style>
+    /* New Loader CSS */
+    .loader {
+      height: 4px;
+      width: 130px;
+      margin-bottom: 64px;
+      margin-top: 64px;
+      --c: no-repeat linear-gradient(#000000 0 0);
+      background: var(--c), var(--c), #d7b8fc;
+      background-size: 60% 100%;
+      animation: l16 3s infinite;
+    }
+    @keyframes l16 {
+      0%   { background-position: -150% 0, -150% 0; }
+      66%  { background-position: 250% 0, -150% 0; }
+      100% { background-position: 250% 0, 250% 0; }
+    }
+  
+    /* Existing CSS for infinite scroll */
+    infinite-scroll {
+      position: relative;
+      width: 100%;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.5s ease;
+    }
+  
+    /* Styles for fallback pagination */
+    .fallback-pagination {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .fallback-pagination li a {
+      text-decoration: none;
+      background: #ececec;
+      padding: 5px 10px;
+      border-radius: 5px;
+      color: #000;
+    }
+  </style>
+  
+  <script>
+    class InfiniteScroll extends HTMLElement {
+      constructor() {
+        super();
+        this.loading = false; // Prevent multiple simultaneous fetches
+        this.page = 1;
+        this.initGrid();
+        // Cache the loader element (if present)
+        this.loader = this.querySelector('.loader');
+        this.init();
+      }
+      
+      initGrid() {
+        // Define selectors for possible product grid containers.
+        const gridOptions = [".ProductListWrapper", "#main-collection-product-grid", "#product-grid", ".product-list"];
+        for (let gridName of gridOptions) {
+          let grid = document.querySelector(gridName);
+          if (grid) {
+            this.gridName = gridName;
+            this.gridContainer = grid;
+            break;
+          }
+        }
+      }
+      
+      init() {
+        const observer = new IntersectionObserver(this.revealItem.bind(this), {
+          root: null,
+          threshold: 0.05,
+        });
+        observer.observe(this);
+      }
+      
+      fetchNextPage(pageNumber) {
+        if (pageNumber <= this.dataset.pageSize) {
+          if (this.loader) {
+            this.loader.style.display = 'block';
+          }
+          this.loading = true;
+          const urlTemplate = `{{ shop.url }}/${this.dataset.next}`;
+          const url = new URL(urlTemplate);
+          url.searchParams.set("page", pageNumber);
+          fetch(url.href, { method: "GET", headers: { "Content-Type": "text/html" } })
+            .then(response => response.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const doc = parser.parseFromString(html, "text/html");
+              // Append the new content into the existing grid container.
+              const newContent = doc.querySelector(this.gridName).innerHTML;
+              this.gridContainer.insertAdjacentHTML("beforeend", newContent);
+              
+              // Update the URL using pushState for SEO and bookmarking.
+              let newUrl = url.href;
+              window.history.pushState({page: pageNumber}, "", newUrl);
+              
+              // Hide the loader after new content loads.
+              if (this.loader) {
+                this.loader.style.display = 'none';
+              }
+              this.loading = false;
+            })
+            .catch(error => {
+              console.error("Error:", error);
+              if (this.loader) {
+                this.loader.style.display = 'none';
+              }
+              this.loading = false;
+            });
+        }
+        if (pageNumber == this.dataset.pageSize) {
+          // When reaching the final page, display end text.
+          this.innerHTML = `<h2>${this.dataset.endText}</h2>`;
+        }
+      }
+      
+      revealItem(entries, observer) {
+        const [entry] = entries;
+        if (!entry.isIntersecting) return;
+        // Prevent additional requests if loading is in progress.
+        if (!this.loading) {
+          this.page++;
+          this.fetchNextPage(this.page);
+        }
+        if (this.page == this.dataset.pageSize) {
+          observer.unobserve(entry.target);
+        }
+      }
+    }
+    customElements.define("infinite-scroll", InfiniteScroll);
+  </script>
+  

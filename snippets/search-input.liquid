@@ -1,0 +1,63 @@
+{% comment %} <template x-if="true"> {% endcomment %}
+
+{% capture modal_trigger %}
+
+    
+  {% render 'icon-search', class: 'w-6 h-6' %}
+
+{% endcapture %}
+
+{% capture modal_content %}
+
+
+
+  <predictive-search>
+    <form action="{{ routes.search_url }}" method="get" role="search">
+      <div class="field relative items-center" >
+        <div class=" flex gap-1 items-center border-b mx-1 ">
+          {% render 'icon-search', class: 'w-5 h-5' %}
+      <input class="field__input m-auto w-full md:p-2 outline-none "
+        id="Search"
+        type="search"
+        name="q"
+        value="{{ search.terms | escape }}"
+
+        {% comment %} role="combobox"
+        aria-expanded="false" {% endcomment %}
+        aria-owns="predictive-search-results"
+        aria-controls="predictive-search-results"
+        aria-haspopup="listbox"
+        aria-autocomplete="list"
+
+     
+      >
+
+ 
+
+      </div>
+
+      <input class="box" name="options[prefix]" type="hidden" value="last">
+
+
+      <div id="predictive-search" tabindex="-1"></div>
+
+
+      </div>
+    </form>
+  </predictive-search>
+
+
+
+
+
+{% endcapture %}
+{% render 'popup-modal',
+  trigger: modal_trigger,
+  title: 'Search',
+  content: modal_content,
+  trigger_class: ' cursor-pointer rounded-full py-2  ',
+  width_class: 'w-[500px] ',
+  popup_button: ''
+%}
+
+{% comment %} </template> {% endcomment %}

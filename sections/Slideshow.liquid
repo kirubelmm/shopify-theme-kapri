@@ -1,0 +1,377 @@
+<style>
+  #slide-show-{{ section.id }} {
+    height: {{ section.settings.slideshow_height }}vh;
+  }
+  {% comment %} .animate-underline-once::after {
+    content: '';
+    display: block;
+    width: 0;
+    height: 2px;
+    background: currentColor;
+    transition: width 0.3s ease;
+  }
+  .animate-underline-once:hover::after {
+    width: 100%;
+  } {% endcomment %}
+</style>
+
+<script src="{{ 'button-decoration.js' | asset_url }}" defer></script>
+{{ 'button-decoration.css' | asset_url | stylesheet_tag }}
+
+<section
+  style="margin-top: {{ section.settings.section_spacing_top }}rem; margin-bottom: {{ section.settings.section_spacing_bottom }}rem;"
+>
+  <div
+    x-data="
+      {
+        autoplayIntervalTime: {{ section.settings.autoplay_interval }},
+        slides: [
+          {% for block in section.blocks %}
+            {
+              imgSrc: {% if block.settings.image != blank %}'{{ block.settings.image | image_url }}'{% else %}null{% endif %},
+              title: '{{ block.settings.title }}',
+              description: '{{ block.settings.description }}',
+              titleFont: '{{ block.settings.title_font }}',
+              descriptionFont: '{{ block.settings.description_font }}',
+              textAlignment: '{{ block.settings.text_alignment }}',
+              verticalAlignment: '{{ block.settings.vertical_alignment }}',
+              horizontalAlignment: '{{ block.settings.horizontal_alignment }}',
+              buttonText: '{{ block.settings.button_text }}',
+              buttonLink: '{{ block.settings.button_link }}',
+              buttonStyle: '{{ block.settings.button_style }}'
+            }{% unless forloop.last %},{% endunless %}
+          {% endfor %}
+        ],
+        currentSlideIndex: 1,
+        isPaused: false,
+        autoplayInterval: null,
+        previous() {
+          this.currentSlideIndex = this.currentSlideIndex > 1 ? this.currentSlideIndex - 1 : this.slides.length;
+        },
+        next() {
+          this.currentSlideIndex = this.currentSlideIndex < this.slides.length ? this.currentSlideIndex + 1 : 1;
+        },
+        autoplay() {
+          this.autoplayInterval = setInterval(() => {
+            if (!this.isPaused) {
+              this.next();
+            }
+          }, this.autoplayIntervalTime);
+        },
+        setAutoplayInterval(newIntervalTime) {
+          clearInterval(this.autoplayInterval);
+          this.autoplayIntervalTime = newIntervalTime;
+          this.autoplay();
+        }
+      }
+    "
+    x-init="autoplay"
+    class="relative w-full overflow-hidden"
+  >
+    <!-- Slides -->
+    <div id="slide-show-{{ section.id }}" class="relative w-full">
+      <template x-for="(slide, index) in slides" :key="index">
+        <div
+          x-cloak
+          x-show="currentSlideIndex === index + 1"
+          class="absolute  inset-0"
+          x-transition.opacity.duration.1000ms
+        >
+          <!-- Content Container -->
+          <div
+            class="lg:px-10 md:px-4 px-2 absolute bg-gradient-to-t from-black to-transparent inset-0 z-10 flex gap-2 py-2 lg:py-10"
+            :class="[slide.verticalAlignment, slide.horizontalAlignment]"
+          >
+            <div class="max-w-lg">
+              <h3
+                class="w-full mb-2 text-balance text-white"
+                :class="[slide.titleFont, slide.textAlignment]"
+                x-text="slide.title"
+              ></h3>
+              <p
+                class="w-full mb-4 text-pretty text-slate-300"
+                :class="[slide.descriptionFont, slide.textAlignment]"
+                x-text="slide.description"
+              ></p>
+
+              <!-- Button -->
+              <template x-if="slide.buttonText">
+                <div :class="slide.textAlignment">
+                  <a
+                    :href="slide.buttonLink"
+                    class="inline-block"
+                  >
+                    <button
+                      class="focus:outline-none focus:ring transition-all duration-200"
+                      :class="
+                        {
+                          'animate-underline-once relative inline-flex items-center justify-center uppercase text-base font-semibold text-white bg-transparent  cursor-pointer transition duration-200 ease-in-out': slide.buttonStyle === 'underline',
+                          'py-2 bg-transparent text-white  border-2 border-white border-transparent hover:bg-white hover:text-black hover:border-2 px-5': slide.buttonStyle === 'outline',
+                          'py-2 bg-white text-black border-2 border-white hover:bg-transparent hover:text-white hover:border-white px-5 focus:outline-none focus:ring ': slide.buttonStyle === 'normal'
+                        }
+                      "
+                    >
+                      <span x-text="slide.buttonText"></span>
+                    </button>
+                  </a>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- Image -->
+          <template x-if="slide.imgSrc">
+            <img
+              class="absolute w-full h-full inset-0 object-cover"
+              :src="slide.imgSrc"
+              :alt="slide.alt || 'Slide image'"
+              width="1600"
+              height="900"
+            >
+          </template>
+          <template x-if="!slide.imgSrc">
+            <div class="absolute w-full h-full inset-0 flex items-center justify-center bg-gray-100">
+              {{ 'image' | placeholder_svg_tag: '600x600' }}
+            </div>
+          </template>
+        </div>
+      </template>
+    </div>
+
+    <!-- Replace the controls section with this -->
+    {% if section.blocks.size > 1 %}
+      <button
+        type="button"
+        class="absolute bottom-1 md:bottom-3 letft-1 md:left-3 z-20 rounded-full p-1 text-white opacity-80 hover:bg-black/50 hover:opacity-100 "
+        aria-label="pause carousel"
+        x-on:click="(isPaused = !isPaused), setAutoplayInterval(autoplayIntervalTime)"
+        :aria-pressed="isPaused"
+      >
+        <template x-if="!isPaused">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            class="size-8"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M2 10a8 8 0 1 1 16 0 8 8 0 0 1-16 0Zm5-2.25A.75.75 0 0 1 7.75 7h.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-.75.75h-.5a.75.75 0 0 1-.75-.75v-4.5Zm4 0a.75.75 0 0 1 .75-.75h.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-.75.75h-.5a.75.75 0 0 1-.75-.75v-4.5Z"
+              clip-rule="evenodd"
+            ></path>
+          </svg>
+        </template>
+
+        <template x-if="isPaused">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            class="size-8"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M2 10a8 8 0 1 1 16 0 8 8 0 0 1-16 0Zm6.39-2.908a.75.75 0 0 1 .766.027l3.5 2.25a.75.75 0 0 1 0 1.262l-3.5 2.25A.75.75 0 0 1 8 12.25v-4.5a.75.75 0 0 1 .39-.658Z"
+              clip-rule="evenodd"
+            ></path>
+          </svg>
+        </template>
+      </button>
+    {% endif %}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Slideshow",
+  "settings": [
+    {
+      "type": "number",
+      "id": "autoplay_interval",
+      "label": "Autoplay Interval (ms)",
+      "default": 4000
+    },
+    {
+      "type": "range",
+      "id": "slideshow_height",
+      "label": "Slideshow Height",
+      "min": 30,
+      "max": 100,
+      "step": 10,
+      "default": 40
+    },
+    {
+      "type": "header",
+      "content": "Section Spacing"
+    },
+
+    {
+      "type": "range",
+      "id": "section_spacing_top",
+      "label": "Top Spacing",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "section_spacing_bottom",
+      "label": "Bottom Spacing",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Slide",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "This is title"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "Description",
+          "default": "This is description"
+        },
+        {
+          "type": "header",
+          "content": "Font"
+        },
+        {
+          "type": "select",
+          "id": "title_font",
+          "label": "Title Font Size",
+          "default": "text-5xl",
+          "options": [
+            {
+              "value": "text-4xl",
+              "label": "Small"
+            },
+            {
+              "value": "text-5xl",
+              "label": "Medium"
+            },
+            {
+              "value": "text-6xl",
+              "label": "Large"
+            }
+          ]
+        },
+        {
+          "type": "select",
+          "id": "description_font",
+          "label": "Description Font Size",
+          "default": "text-md",
+          "options": [
+            {
+              "value": "text-md",
+              "label": "Small"
+            },
+            {
+              "value": "text-lg",
+              "label": "Medium"
+            },
+            {
+              "value": "text-xl",
+              "label": "Large"
+            }
+          ]
+        },
+        {
+          "type": "select",
+          "id": "text_alignment",
+          "label": "Align text",
+          "options": [
+            { "value": "text-left", "label": "Left" },
+            { "value": "text-center", "label": "Center" },
+            { "value": "text-right", "label": "Right" }
+          ],
+          "default": "text-center"
+        },
+        {
+          "type": "header",
+          "content": "Content Position"
+        },
+        {
+          "type": "select",
+          "id": "vertical_alignment",
+          "label": "Vertical alignment",
+          "options": [
+            { "value": "items-start", "label": "Top" },
+            { "value": "items-center", "label": "Center" },
+            { "value": "items-end", "label": "Bottom" }
+          ],
+          "default": "items-center"
+        },
+        {
+          "type": "select",
+          "id": "horizontal_alignment",
+          "label": "Horizontal alignment",
+          "options": [
+            { "value": "justify-start", "label": "Left" },
+            { "value": "justify-center", "label": "Center" },
+            { "value": "justify-end", "label": "Right" }
+          ],
+          "default": "justify-center"
+        },
+        {
+          "type": "header",
+          "content": "Button"
+        },
+        {
+          "type": "text",
+          "id": "button_text",
+          "label": "Button text",
+          "default": "Shop Now"
+        },
+        {
+          "type": "url",
+          "label": "Button Link",
+          "id": "button_link",
+          "default": "/collections/all",
+          "info": "Select a URL, product, collection, or page link"
+        },
+        {
+          "type": "select",
+          "id": "button_style",
+          "label": "Button Style",
+          "default": "normal",
+          "options": [
+            {
+              "value": "normal",
+              "label": "Normal"
+            },
+            {
+              "value": "outline",
+              "label": "Outline"
+            },
+            {
+              "value": "underline",
+              "label": "Underline"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Slideshow",
+      "blocks": [{ "type": "slide" }, { "type": "slide" }, { "type": "slide" }]
+    }
+  ]
+}
+{% endschema %}

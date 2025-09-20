@@ -1,0 +1,143 @@
+
+<div class="register max-w-sm mx-auto px-2 md:px-2 ">
+
+  <div class="h-full my-6 md:my-8">
+      <header class="flex justify-between items-center text-center mb-4">
+        <h2 class="text-2xl uppercase w-full" tabindex="-1"> {{ 'customer.register.title' | t }}</h2>
+      </header>
+      <div class="flex items-center h-full">
+        <div class="w-full">
+           
+            {%- form 'create_customer', novalidate: 'novalidate' -%}
+
+              {%- if form.errors -%}
+                <h4 class="" tabindex="-1" autofocus>
+                  <svg aria-hidden="true" focusable="false" role="presentation">
+                    <use href="#icon-error" />
+                  </svg>
+                  {{ 'templates.contact.form.error_heading' | t }}
+                </h4>
+                <ul> 
+                  {%- for field in form.errors -%}
+                    <li>
+                      {%- if field == 'form' -%}
+                        {{ form.errors.messages[field] }}
+                      {%- else -%}
+                        <a href="#RegisterForm-{{ field }}">
+                          {{ form.errors.translated_fields[field] | capitalize }}
+                          {{ form.errors.messages[field] }}
+                        </a>
+                      {%- endif -%}
+                    </li>
+                  {%- endfor -%}
+                </ul>
+              {%- endif -%}
+
+              <div class="flex flex-col mb-3 mt-1"> 
+                <label for="RegisterForm-FirstName" class="sr-only tracking-widest">
+                  {{ 'customer.register.first_name' | t }}
+                </label>     
+                <input
+                  type="text"
+                  name="customer[first_name]"
+                  id="RegisterForm-FirstName"
+                  placeholder="{{ 'customer.register.first_name' | t }}"
+                  class="border border-black px-2 h-[42px] placeholder-primary"
+                  {% if form.first_name %}value="{{ form.first_name }}"{% endif %}
+                  autocomplete="given-name"
+                >
+              
+              </div>
+              <div class="flex flex-col mb-3">
+                <label for="RegisterForm-LastName" class="sr-only tracking-widest">
+                  {{ 'customer.register.last_name' | t }}
+                </label>
+                <input
+                  type="text"
+                  name="customer[last_name]"
+                  id="RegisterForm-LastName"
+                  placeholder="{{ 'customer.register.last_name' | t }}"
+                  {% if form.last_name %}value="{{ form.last_name }}"{% endif %}
+                  autocomplete="family-name"
+                  class="border border-black px-2 h-[42px] placeholder-primary"
+                >
+              
+              </div>
+              <div class="flex flex-col mb-3">
+                <label for="RegisterForm-email" class="sr-only tracking-widest">
+                  {{ 'customer.register.email' | t }}
+                </label>  
+                <input
+                  type="email"
+                  name="customer[email]"
+                  id="RegisterForm-email"
+                  placeholder="{{ 'customer.register.email' | t }}"
+                  {% if form.email %} value="{{ form.email }}"{% endif %}
+                  spellcheck="false"
+                  autocapitalize="off"
+                  autocomplete="email"
+                  aria-required="true"
+                  class="border border-black px-2 h-[42px] placeholder-primary"
+                  {% if form.errors contains 'email' %}
+                    aria-invalid="true"
+                    aria-describedby="RegisterForm-email-error"
+                  {% endif %}
+                >
+              
+              </div>
+          
+              {%- if form.errors contains 'email' -%}
+                <span id="RegisterForm-email-error" class="form__message">
+                  <svg aria-hidden="true" focusable="false" role="presentation">
+                    <use href="#icon-error" />
+                  </svg>
+                  {{ form.errors.translated_fields['email'] | capitalize }} {{ form.errors.messages['email'] }}.
+                </span>
+              {%- endif -%}
+
+              <div class="flex flex-col mb-6"> 
+                <label for="RegisterForm-password" class="sr-only tracking-widest">
+                  {{ 'customer.register.password' | t }}
+                </label>    
+                <input
+                  type="password"
+                  name="customer[password]"
+                  id="RegisterForm-password"
+                  aria-required="true"
+                  placeholder="{{ 'customer.register.password' | t }}"
+                  class="border border-black px-2 h-[42px] placeholder-primary"
+                  {% if form.errors contains 'password' %}
+                    aria-invalid="true"
+                    aria-describedby="RegisterForm-password-error"
+                  {% endif %}
+                >
+            
+              </div>
+          
+              {%- if form.errors contains 'password' -%}
+                <span id="RegisterForm-password-error" class="form__message">
+                  <svg aria-hidden="true" focusable="false" role="presentation">
+                    <use href="#icon-error" />
+                  </svg>
+                  {{ form.errors.translated_fields['password'] | capitalize }} {{ form.errors.messages['password'] }}.
+                </span>
+              {%- endif -%}
+              
+              <button class="text-sm button__primary justify-center  w-full">
+                {{ 'customer.register.submit' | t }}
+              </button>
+
+              <p class="my-4 text-sm tracking-widest block w-full text-center">
+                {{ 'customer.register.back' | t }}
+                <a href="{{ routes.account_login_url }}" class="underline">
+                  {{ 'customer.login_page.cancel' | t }}
+                </a>
+              </p>
+          {%- endform -%}
+
+          </div>
+
+      </div>
+  </div>
+
+</div>

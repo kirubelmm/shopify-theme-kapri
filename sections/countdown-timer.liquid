@@ -1,0 +1,264 @@
+{% schema %}
+{
+  "name": "Countdown Timer",
+  "settings": [
+    {
+      "type": "text",
+      "id": "header_text",
+      "label": "Header Text",
+      "default": "Sale Ends In:"
+    },
+    {
+      "type": "range",
+      "id": "days_duration",
+      "min": 0,
+      "max": 31,
+      "step": 1,
+      "unit": "day",
+      "label": "Days",
+      "default": 1
+    },
+    {
+      "type": "range",
+      "id": "hours_duration",
+      "min": 0,
+      "max": 23,
+      "step": 1,
+      "unit": "hr",
+      "label": "Hours",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "minutes_duration",
+      "min": 0,
+      "max": 59,
+      "step": 1,
+      "unit": "min",
+      "label": "Minutes",
+      "default": 0
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background Color",
+      "default": "#010001"
+    },
+    {
+      "type": "range",
+      "id": "bg_opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Background Opacity",
+      "default": 70
+    },
+    {
+      "type": "color",
+      "id": "header_color",
+      "label": "Header Text Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "number_color",
+      "label": "Number Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "label_color",
+      "label": "Label Color",
+      "default": "#a0a0a0"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Countdown Timer",
+      "category": "Promotional"
+    }
+  ]
+}
+{% endschema %}
+
+<div class="w-full h-auto" data-countdown-section>
+  <div
+    class="w-full bg-cover h-auto"
+    style="background-color: {{ section.settings.bg_color }}; opacity: {{ section.settings.bg_opacity | divided_by: 100.0 }};"
+    {% comment %} style="background-image: url('https://images.pexels.com/photos/1001435/pexels-photo-1001435.jpeg?auto=compress&cs=tinysrgb&w=1200');" {% endcomment %}
+  >
+    <div class="w-full h-full lg:px-10 py-8 md:px-4 px-2 ">
+      <div class="w-full  flex-1 flex flex-col md:flex-row items-center justify-between">
+        <div>
+          <h1 class="text-white text-4xl">Summer Sale,Limited sale</h1>
+        </div>
+        <div class="flex flex-col items-center w-auto">
+          <div
+            class="flex items-center justify-center space-x-2 md:space-x-4 mt-4"
+            data-countdown-timer
+            data-timer-type="{{ section.settings.timer_type }}"
+            data-end-year="{{ section.settings.end_year }}"
+            data-end-month="{{ section.settings.end_month }}"
+            data-end-day="{{ section.settings.end_day }}"
+            data-days-duration="{{ section.settings.days_duration }}"
+            data-hours-duration="{{ section.settings.hours_duration }}"
+            data-minutes-duration="{{ section.settings.minutes_duration }}"
+          >
+            <div class="flex flex-col items-center px-4">
+              <span data-days class="text-2xl lg:text-4xl" style="color: {{ section.settings.number_color }}">00</span>
+              <span class="mt-2 text-md " style="color: {{ section.settings.label_color }}">Days</span>
+            </div>
+            <span class="w-[1px] h-24" style="background-color: {{ section.settings.label_color }}"></span>
+            <div class="flex flex-col items-center px-1 md:px-3">
+              <span data-hours class="text-2xl lg:text-4xl" style="color: {{ section.settings.number_color }}">00</span>
+              <span class="mt-2 text-md" style="color: {{ section.settings.label_color }}">Hours</span>
+            </div>
+            <span class="w-[1px] h-24" style="background-color: {{ section.settings.label_color }}"></span>
+            <div class="flex flex-col items-center px-1 md:px-3">
+              <span data-minutes class="text-2xl lg:text-4xl" style="color: {{ section.settings.number_color }}"
+                >00</span
+              >
+              <span class="mt-2 text-md" style="color: {{ section.settings.label_color }}">Minutes</span>
+            </div>
+            <span class="w-[1px] h-24" style="background-color: {{ section.settings.label_color }}"></span>
+            <div class="flex flex-col items-center px-1 md:px-3">
+              <span data-seconds class="text-2xl lg:text-4xl" style="color: {{ section.settings.number_color }}"
+                >00</span
+              >
+              <span class="mt-2 text-md" style="color: {{ section.settings.label_color }}">Seconds</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  class CountdownTimer {
+    constructor(element) {
+      this.element = element;
+      this.daysEl = element.querySelector('[data-days]');
+      this.hoursEl = element.querySelector('[data-hours]');
+      this.minutesEl = element.querySelector('[data-minutes]');
+      this.secondsEl = element.querySelector('[data-seconds]');
+
+      this.timerType = element.getAttribute('data-timer-type');
+      this.endDate = element.getAttribute('data-end-date');
+      this.daysDuration = parseInt(element.getAttribute('data-days-duration') || 0);
+      this.hoursDuration = parseInt(element.getAttribute('data-hours-duration') || 0);
+      this.minutesDuration = parseInt(element.getAttribute('data-minutes-duration') || 0);
+
+      this.setExpiryDate();
+      this.intervalId = null;
+      this.init();
+    }
+
+    setExpiryDate() {
+      if (this.timerType === 'fixed') {
+        // Use the fixed end date from settings
+        const year = this.endYear;
+        const month = this.endMonth - 1; // JS months are 0-based
+        const day = this.endDay;
+
+        const endDate = new Date(year, month, day, 23, 59, 59); // Set to end of day
+        if (!isNaN(endDate.getTime())) {
+          this.expiry = endDate.getTime();
+        } else {
+          // Fallback if date is invalid
+          this.expiry = this.getDefaultExpiry();
+        }
+      } else {
+        this.expiry = this.getDefaultExpiry();
+      }
+    }
+
+    getDefaultExpiry() {
+      // Calculate duration from now
+      const now = new Date();
+      const daysInMs = this.daysDuration * 24 * 60 * 60 * 1000;
+      const hoursInMs = this.hoursDuration * 60 * 60 * 1000;
+      const minutesInMs = this.minutesDuration * 60 * 1000;
+
+      return now.getTime() + daysInMs + hoursInMs + minutesInMs;
+    }
+
+    init() {
+      // Initial update
+      this.update();
+
+      // Set interval for updates
+      this.intervalId = setInterval(() => {
+        this.update();
+      }, 1000);
+    }
+
+    update() {
+      const now = new Date().getTime();
+      const difference = this.expiry - now;
+
+      // Stop if expired
+      if (difference <= 0) {
+        clearInterval(this.intervalId);
+        this.setTimeValues(0, 0, 0, 0);
+        return;
+      }
+
+      // Calculate time values
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+      this.setTimeValues(days, hours, minutes, seconds);
+    }
+
+    setTimeValues(days, hours, minutes, seconds) {
+      this.daysEl.textContent = this.formatNumber(days);
+      this.hoursEl.textContent = this.formatNumber(hours);
+      this.minutesEl.textContent = this.formatNumber(minutes);
+      this.secondsEl.textContent = this.formatNumber(seconds);
+    }
+
+    formatNumber(number) {
+      return number < 10 ? `0${number}` : number;
+    }
+
+    // Clean up on section unload
+    destroy() {
+      if (this.intervalId) {
+        clearInterval(this.intervalId);
+      }
+    }
+  }
+
+  // Initialize all countdown timers on the page
+  document.addEventListener('DOMContentLoaded', () => {
+    initCountdownTimers();
+  });
+
+  // Handle Shopify section events
+  document.addEventListener('shopify:section:load', (event) => {
+    if (event.target.querySelector('[data-countdown-timer]')) {
+      initCountdownTimers(event.target);
+    }
+  });
+
+  document.addEventListener('shopify:section:unload', (event) => {
+    const timerElements = event.target.querySelectorAll('[data-countdown-timer]');
+    timerElements.forEach((el) => {
+      if (el.countdownInstance) {
+        el.countdownInstance.destroy();
+      }
+    });
+  });
+
+  function initCountdownTimers(container = document) {
+    const timerElements = container.querySelectorAll('[data-countdown-timer]');
+    timerElements.forEach((el) => {
+      // Create new instance and store reference for cleanup
+      el.countdownInstance = new CountdownTimer(el);
+    });
+  }
+</script>

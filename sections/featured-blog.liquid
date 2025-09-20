@@ -1,0 +1,214 @@
+<section
+  class=" lg:px-10 px-4 section-spacing-{{ section.id }} "
+  style="margin-top: {{ section.settings.section_spacing_top }}rem; margin-bottom: {{ section.settings.section_spacing_bottom }}rem;"
+>
+  {% capture slider_content %}
+      {%- if section.settings.blog and section.settings.blog.articles_count > 0 -%}
+       
+          {%- for article in section.settings.blog.articles limit: section.settings.post_limit -%}
+            <div id="column_range-{{ section.id }}"
+                class="snap-center product-item" >
+              {% render 'article-card', blog: section.settings.blog, article: article, media_aspect_ratio: 1.66, show_image: section.settings.show_image, show_date: section.settings.show_date, show_author: section.settings.show_author, show_excerpt: true, custom_class: 'kirubel' %}
+            </div>
+          {%- endfor -%}
+      {%- else -%}
+
+        {%- for i in (1..4) -%}
+          <div id="column_range-{{ section.id }}"
+              class="snap-center product-item" >
+            {% render 'article-card', blog: section.settings.blog, article: article, media_aspect_ratio: 1.66, show_image: section.settings.show_image, show_date: section.settings.show_date, show_author: section.settings.show_author, show_excerpt: true, custom_class: 'kirubel' %}
+          </div>
+        {%- endfor -%}
+      {%- endif -%} 
+
+    {% endcapture %}
+
+  {% render 'product-slider',
+    content: slider_content,
+    section_id: section.id,
+    show_navigation: true,
+    viewall_url: section.settings.collection.url
+  %}
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.featured-blog.name",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "BLOG POSTS"
+    },
+
+    {
+      "type": "select",
+      "id": "header_font",
+      "label": "Desktop Font Size",
+      "default": "md:text-2xl",
+      "options": [
+        {
+          "value": "md:text-xl",
+          "label": "Small"
+        },
+        {
+          "value": "md:text-2xl",
+          "label": "Medium"
+        },
+        {
+          "value": "md:text-3xl",
+          "label": "Large"
+        }
+      ]
+    },
+
+    {
+      "type": "select",
+      "id": "mobile_header_font",
+      "label": "Mobile Font Size",
+      "default": "text-lg",
+      "options": [
+        {
+          "value": "text-md",
+          "label": "Small"
+        },
+        {
+          "value": "text-lg",
+          "label": "Medium"
+        },
+        {
+          "value": "text-xl",
+          "label": "Large"
+        }
+      ]
+    },
+
+    {
+      "type": "blog",
+      "id": "blog",
+      "label": "Select Blog"
+    },
+    {
+      "type": "range",
+      "id": "post_limit",
+      "min": 1,
+      "max": 16,
+      "step": 1,
+      "default": 5,
+      "label": "Post Limit"
+    },
+    {
+      "type": "checkbox",
+      "id": "slider",
+      "default": true,
+      "label": "Enable slideshow"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_author",
+      "default": true,
+      "label": "Show Author"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_time",
+      "default": true,
+      "label": "Reading Duration"
+    },
+    {
+      "type": "checkbox",
+      "id": "viewall",
+      "default": true,
+      "label": "Discover All"
+    },
+
+    {
+      "type": "select",
+      "id": "column_desktop",
+      "label": "Desktop column",
+      "default": "4",
+      "options": [
+        {
+          "value": "1",
+          "label": "1 Column"
+        },
+        {
+          "value": "2",
+          "label": "2 Columns"
+        },
+        {
+          "value": "3",
+          "label": "3 Columns"
+        },
+        {
+          "value": "4",
+          "label": "4 Columns"
+        },
+        {
+          "value": "5",
+          "label": "5 Columns"
+        }
+      ]
+    },
+
+    {
+      "type": "select",
+      "id": "column_mobile",
+      "label": "Mobile column",
+      "default": "1",
+      "options": [
+        {
+          "value": "1",
+          "label": "1 Column"
+        },
+        {
+          "value": "2",
+          "label": "2 Columns"
+        }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "column_gap",
+      "label": "Column gap",
+      "min": 1,
+      "max": 20,
+      "step": 1,
+      "default": 8
+    },
+
+    {
+      "type": "header",
+      "content": "Section Spacing"
+    },
+
+    {
+      "type": "range",
+      "id": "section_spacing_top",
+      "label": "Top Spacing",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "section_spacing_bottom",
+      "label": "Bottom Spacing",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    }
+  ],
+
+  "presets": [
+    {
+      "name": "Blog section"
+    }
+  ]
+}
+{% endschema %}

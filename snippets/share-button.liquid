@@ -1,0 +1,85 @@
+{% comment %}
+  Renders share button.
+  Accepts:
+  - block: {Object} passes in the block information.
+  - share_link: {String} url to be added to the input the user will get/copy.
+
+  Usage:
+  {% render 'share-button',
+    block: block,
+    share_link: share_url
+  %}
+{% endcomment %}
+{% comment %} <script src="{{ 'share.js' | asset_url }}" defer="defer"></script> {% endcomment %}
+
+<share-button
+  id="Share-{{ section.id }}"
+  class="share-button quick-add-hidden block relative"
+  {{ block.shopify_attributes }}
+>
+  <button class="share-button__button hidden">
+    <span class="svg-wrapper inline-block w-6 h-6">{{ 'icon-share.svg' | inline_asset_content }}</span>
+    <span class="ml-2">{{ block.settings.share_label | escape }}</span>
+  </button>
+  <details id="Details-{{ block.id }}-{{ section.id }}" class="relative" onclick="event.stopPropagation();">
+    <summary class="share-button__button cursor-pointer flex items-center justify-center space-x-2  py-2 ">
+      <span class="w-5 h-5 flex items-center ">{% render 'icon-share' %}</span>
+      <span>{{ block.settings.share_label | escape }}</span>
+    </summary>
+    <!-- Dropdown content: Absolute positioned to overlay the sections below -->
+    <div class="share-button__fallback motion-reduce absolute top-full left-0 mt-2 p-4 bg-gray-50 rounded-lg shadow-lg z-50 w-64">
+      <div class="field mb-4">
+        <span id="ShareMessage-{{ section.id }}" class="share-button__message hidden" role="status"> </span>
+        <input
+          type="text"
+          class="field__input w-full border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          id="ShareUrl-{{ section.id }}"
+          value="{{ share_link }}"
+          placeholder="{{ 'general.share.share_url' | t }}"
+          onclick="this.select();"
+          readonly
+        >
+        {% comment %} <label class="field__label text-sm text-gray-600 mt-1 block" for="ShareUrl-{{ section.id }}">{{ 'general.share.share_url' | t }}</label> {% endcomment %}
+      </div>
+      <div class="flex justify-between">
+        <button class="share-button__close hidden">
+          <span class="svg-wrapper inline-block w-5 h-5">
+            {{- 'icon-close.svg' | inline_asset_content -}}
+          </span>
+          <span class="visually-hidden">{{ 'general.share.close' | t }}</span>
+        </button>
+        <button
+          class="share-button__copy px-4 py-2 rounded-lg flex items-center space-x-2"
+          onclick="copyToClipboard('{{ share_link }}'); this.closest('details').removeAttribute('open');"
+        >
+          {% comment %}
+            <span class="svg-wrapper inline-block w-5 h-5">
+              {{- 'icon-copy.svg' | inline_asset_content -}}
+            </span>
+          {% endcomment %}
+          <span class="visually-hidden underline">{{ 'general.share.copy_to_clipboard' | t }}</span>
+        </button>
+      </div>
+    </div>
+  </details>
+</share-button>
+
+<script>
+  function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+      const message = document.getElementById('ShareMessage-{{ section.id }}');
+      message.textContent = 'Copied'; // Add a message for feedback
+      message.classList.remove('hidden');
+      setTimeout(() => message.classList.add('hidden'), 2000); // Hide message after 2 seconds
+    });
+  }
+
+  document.addEventListener('click', function (event) {
+    const details = document.querySelectorAll('details');
+    details.forEach((detail) => {
+      if (detail.open && !detail.contains(event.target)) {
+        detail.removeAttribute('open');
+      }
+    });
+  });
+</script>

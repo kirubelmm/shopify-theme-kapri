@@ -1,0 +1,21 @@
+.box {
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: 4rem;
+  padding-left: 4rem;
+}
+.box-mobile {
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: 1rem;
+  padding-left: 1rem;
+}
+@media screen and (max-width: 678px) {
+  .field__input {
+    width: 90%;
+  }
+
+  .predictive-search-results {
+    overflow-y: auto;
+  }
+}

@@ -1,0 +1,185 @@
+{% if product.metafields.custom.video %}
+  <div
+    x-data="
+      {
+          dragging: false,
+          posX: window.innerWidth - 112,
+          posY: 300,
+          offsetX: 0,
+          offsetY: 0,
+          videoModalIsOpen: false,
+          moveDistance: 0,
+          snapThreshold: 50,
+          edgeMargin: 16,
+          isVisible: true,
+          startDrag(e) {
+              if (!e.target.closest('.video-item')) return;
+              e.preventDefault();
+              this.dragging = true;
+              const clientX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX;
+              const clientY = e.type.startsWith('touch') ? e.touches[0].clientY : e.clientY;
+              this.offsetX = clientX - this.posX;
+              this.offsetY = clientY - this.posY;
+              this.moveDistance = 0;
+          },
+          stopDrag() {
+              if (!this.dragging) return;
+
+              // When stopping drag, determine which edge is closer and snap to it
+              const windowWidth = window.innerWidth;
+              const elementWidth = 96; // w-24 equals 96px
+
+              // Calculate the element's center position and screen center
+              const elementCenter = this.posX + (elementWidth / 2);
+              const screenCenter = windowWidth / 2;
+
+              // If element's center is left of screen center, snap left; otherwise, snap right
+              if (elementCenter < screenCenter) {
+                  this.posX = this.edgeMargin;
+              } else {
+                  this.posX = windowWidth - elementWidth - this.edgeMargin;
+              }
+
+              if (this.moveDistance < 5) {
+                  this.videoModalIsOpen = true;
+              }
+              this.dragging = false;
+          },
+          drag(e) {
+              if (this.dragging) {
+                  e.preventDefault();
+                  const clientX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX;
+                  const clientY = e.type.startsWith('touch') ? e.touches[0].clientY : e.clientY;
+                  let newX = clientX - this.offsetX;
+                  const newY = clientY - this.offsetY;
+
+                  // Ensure the element stays within screen bounds with margin
+                  const windowWidth = window.innerWidth;
+                  const elementWidth = 96;
+                  newX = Math.max(this.edgeMargin, Math.min(windowWidth - elementWidth - this.edgeMargin, newX));
+
+                  this.moveDistance += Math.abs(newX - this.posX) + Math.abs(newY - this.posY);
+                  this.posX = newX;
+                  this.posY = newY;
+              }
+          }
+      }
+    "
+    x-show="isVisible"
+    x-cloak
+    :style="`position: fixed; left: ${posX}px; top: ${posY}px; z-index: 9999;`"
+    class="block md:hidden text-center shadow-lg w-24 "
+  >
+    <!-- Close Button -->
+    <button
+      @click="isVisible = false"
+      class="absolute rounded-full bg-gray-100 p-[1px] -right-1 -top-1 z-[51] hover:opacity-75"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-3 w-3 text-gray-500"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+
+    <!-- Video Container -->
+    <div
+      class="video-item cursor-move touch-none initial select-none"
+      @mousedown.prevent="startDrag"
+      @touchstart.prevent="startDrag"
+      @mouseup.window="stopDrag"
+      @touchend.window="stopDrag"
+      @mousemove.window.prevent="drag"
+      @touchmove.window.prevent="drag"
+    >
+      <video
+        src="{{ product.metafields.custom.video | file_url }}"
+        muted
+        playsinline
+        autoplay
+        loop
+        class="w-full z-50"
+      ></video>
+    </div>
+
+    <!-- Outer Modal -->
+    <template x-teleport="body">
+      <div
+        x-show="videoModalIsOpen"
+        x-transition.opacity
+        @click.self="videoModalIsOpen = false"
+        @keydown.esc.stop
+        class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-md"
+      >
+        <!-- Wrap dialog in a container that stops propagation -->
+        <div @click.stop class="bg-black dark:bg-slate-800 w-full ">
+          <button
+            @click="videoModalIsOpen = false"
+            class="absolute -right-[1px] mr-1 bg-gray-100 rounded-full p-1 z-10 top-1 text-gray-500 hover:text-gray-700"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          <div class="absolute bottom-0 h-auto z-50 w-full ">
+            <div class="backdrop-blur-md bg-white/70 py-1 mx-2 mb-2 ">
+              <!-- Note the added @click.prevent to prevent navigation when triggering the inner modal -->
+              <a
+                href="{{ product.url }}"
+                @click.prevent
+                class="product-recommendations__link w-full px-2 py-1.5 flex gap-2"
+              >
+                <img
+                  class="product-recommendations__img h-24"
+                  src="{{ product.featured_image | image_url: width: 100, height: auto }}"
+                  alt="{{ product.featured_image.alt }}"
+                  height="100"
+                  width=""
+                >
+                <span class="flex flex-col justify-center ">
+                  <span class="mb-2 grid gap-0">
+                    <p class="product-recommendations__title">{{ product.title }}</p>
+                    <p class="product-recommendations__price">{{ product.price | money }}</p>
+                  </span>
+                </span>
+              </a>
+
+              {% render 'quick-cart-product' %}
+            </div>
+          </div>
+
+          <!-- Modal Body -->
+          <div class=" ">
+            {% if product.metafields.custom.video %}
+              <video
+                src="{{ product.metafields.custom.video | file_url }}"
+                muted
+                playsinline
+                autoplay
+                loop
+                {% for block in section.blocks %}
+                  {% if block.settings.full_screen %}
+                    class="w-full h-screen object-cover  z-50"
+                  {% else %}
+                    class="w-full   z-50"
+                  {%- endif %}
+                {% endfor %}
+              ></video>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </template>
+  </div>
+{% endif %}

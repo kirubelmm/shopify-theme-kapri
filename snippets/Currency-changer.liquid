@@ -1,0 +1,96 @@
+<div
+    x-data="{ isOpen: false }"
+    class="relative w-fit"
+    x-on:keydown.esc.window="isOpen = false"
+  >
+    {% form 'currency' %}
+      <!-- Toggle Button -->
+      <button
+        type="button"
+        x-on:click="isOpen = !isOpen"
+        x-bind:aria-expanded="isOpen.toString()"
+        class="inline-flex items-center gap-2 left-0 rounded-sm px-4 py-2 text-sm font-medium transition hover:opacity-75"
+      >
+        {{ cart.currency.iso_code }} {{ cart.currency.symbol }}
+        
+      </button>
+  
+      <!-- Dropdown Menu -->
+      <div
+        x-cloak
+        x-show="isOpen"
+        x-transition
+        x-on:click.outside="isOpen = false"
+        class="absolute mt-2 w-32 z-30 rounded-sm border bg-white py-1 shadow-lg"
+        role="menu"
+      >
+        {% for currency in shop.enabled_currencies %}
+          <button
+            type="submit"
+            name="currency"
+            value="{{ currency.iso_code }}"
+            class="block w-full px-4 py-2 text-left text-black text-sm hover:bg-gray-100"
+            role="menuitem"
+          >
+            {{ currency.iso_code }} {{ currency.symbol }}
+          </button>
+        {% endfor %}
+      </div>
+    {% endform %}
+  </div>
+
+
+
+
+
+
+
+
+
+
+   {% comment %} <div
+    x-data="{ isOpen: false }"
+    class="relative w-fit"
+    x-on:keydown.esc.window="isOpen = false"
+  >
+    {% if localization.available_countries.size > 1 %}
+      {% form 'localization' %}
+        <!-- Toggle Button -->
+        <button
+          type="button"
+          x-on:click="isOpen = !isOpen"
+          x-bind:aria-expanded="isOpen.toString()"
+          class="inline-flex items-center gap-2 rounded-sm px-4 py-2 text-sm font-medium transition hover:opacity-75"
+          aria-haspopup="true"
+        >
+          {{ localization.country.name }} ({{ localization.country.currency.iso_code }})
+          <svg aria-hidden="true" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+  
+        <!-- Dropdown Menu -->
+        <div
+          x-cloak
+          x-show="isOpen"
+          x-transition
+          x-on:click.outside="isOpen = false"
+          class="absolute mt-2 w-50 z-40 rounded-sm border bg-white shadow-lg"
+          role="menu"
+        >
+          {% for country in localization.available_countries %}
+            <button
+              type="submit"
+              name="country_code"
+              value="{{ country.iso_code }}"
+              class="block w-full border-b border-gray-200 px-4 py-2 text-left text-black text-sm hover:bg-gray-100"
+              role="menuitem"
+            >
+              {{ country.name }} ({{ country.currency.iso_code }})
+            </button>
+          {% endfor %}
+        </div>
+      {% endform %}
+    {% endif %}
+  </div>
+   {% endcomment %}

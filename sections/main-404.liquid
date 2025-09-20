@@ -1,0 +1,33 @@
+<div class="header__logo mx-auto my-2 md:my-0 md:mr-auto md:ml-0 flex justify-center ">
+  {% if section.settings.logo != blank %}
+    <a href="/" class=" header__logo">
+      {{ section.settings.logo | image_url: width: 400 | image_tag: loading: 'lazy' }}
+    </a>
+  {% else %}
+    <a href="/" class=" header__logo-title">
+      {{ shop.name }}
+    </a>
+  {% endif %}
+</div>
+
+<div class="grid place-content-center h-screen page-width page-margin center">
+  <p
+    class="text-center font-bold"
+    style="font-size: 48px;"
+  >
+    {{ 'templates.404.subtext' | t }}
+  </p>
+  <h1
+    class="title text-center"
+    style="font-size: 18px;"
+  >
+    We Can't Find That Page
+  </h1>
+  <h1 class="title text-center">Not sure what’s happened there. Maybe go grab a new fit instead</h1>
+  <a
+    href="{{ routes.all_products_collection_url }}"
+    class="button bg-black text-white w-fit mt-6 px-4 mx-auto py-3   text-center"
+  >
+    {{ 'general.continue_shopping' | t }}
+  </a>
+</div>

@@ -1,0 +1,90 @@
+<div
+  class="product-recommendations"
+  data-url="{{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ product.id }}&limit=4&intent=complementary"
+>
+  {%- if recommendations.performed? and recommendations.products_count > 0 -%}
+    {% if recommendations.intent == 'complementary' %}
+      <h2 class="mb-2">Pair it with</h2>
+    {% endif %}
+
+    <ul class="product-recommendations__list overflow-x-auto flex gap-1 flex-row ">
+      {%- for product in recommendations.products -%}
+        <li class="product-recommendations__item flex-shrink-0 mb-3 basis-[45%] max-w-[300px]">
+          <a href="{{ product.url }}" class="product-recommendations__link grid gap-2">
+            <img
+              class="product-recommendations__img"
+              src="{{ product.featured_image | image_url: width: 1000, height: auto }}"
+              alt="{{ product.featured_image.alt }}"
+              height=""
+              width=""
+            >
+            <span>
+              <p class="product-recommendations__title text-xs ">{{ product.title }}</p>
+              <p class="product-recommendations__price text-xs mt-1 ">{{ product.price | money }}</p>
+            </span>
+          </a>
+        </li>
+      {%- endfor -%}
+    </ul>
+  {%- else -%}
+    {% comment %} <p>No complementary products available.</p> {% endcomment %}
+  {%- endif -%}
+</div>
+
+<style>
+  /* Scrollbar width */
+  ::-webkit-scrollbar {
+    width: 4px; /* Extra thin scrollbar */
+    height: 2px; /* Thin scrollbar for horizontal scrolling */
+  }
+
+  /* Scrollbar track */
+  ::-webkit-scrollbar-track {
+    background: transparent; /* Invisible track for a minimalist look */
+  }
+
+  /* Scrollbar thumb */
+  ::-webkit-scrollbar-thumb {
+    background: black; /* Soft dark translucent thumb */
+  }
+
+  /* Scrollbar thumb hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.4); /* Slightly darker on hover */
+  }
+
+  /* Scrollbar corner for two-directional scrolling areas */
+  ::-webkit-scrollbar-corner {
+    background: transparent; /* Invisible corner for a clean look */
+  }
+</style>
+
+<script>
+  const handleIntersection = (entries, observer) => {
+    if (!entries[0].isIntersecting) return;
+
+    observer.unobserve(productRecommendationsSection);
+
+    const url = productRecommendationsSection.dataset.url;
+
+    fetch(url)
+      .then((response) => response.text())
+      .then((text) => {
+        const html = document.createElement('div');
+        html.innerHTML = text;
+        const recommendations = html.querySelector('.product-recommendations');
+
+        if (recommendations && recommendations.innerHTML.trim().length) {
+          productRecommendationsSection.innerHTML = recommendations.innerHTML;
+        }
+      })
+      .catch((e) => {
+        console.error(e);
+      });
+  };
+
+  const productRecommendationsSection = document.querySelector('.product-recommendations');
+  const observer = new IntersectionObserver(handleIntersection, { rootMargin: '0px 0px 200px 0px' });
+
+  observer.observe(productRecommendationsSection);
+</script>

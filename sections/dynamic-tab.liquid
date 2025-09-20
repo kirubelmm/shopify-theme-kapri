@@ -1,0 +1,358 @@
+{% style %}
+  .tabproduct-image {
+    width: 130px;
+    height: 130px;
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  @media screen and (min-width: 800px) {
+    .parent-container {
+      position: relative; /* Establishes a positioning context */
+      /* Ensure the parent has a defined height */
+    }
+
+    .sticky-div {
+      position: -webkit-sticky; /* For Safari */
+      position: sticky;
+      top: 0; /* Distance from the top of the viewport */
+      align-self: flex-start; /* Prevents stretching in flex container */
+      z-index: 10; /* Ensures it stays above other content */
+      /* Define a specific height if necessary */
+    }
+  }
+{% endstyle %}
+
+<section
+  style="margin-top: {{ section.settings.section_spacing_top }}rem; margin-bottom: {{ section.settings.section_spacing_bottom }}rem;"
+>
+  {% if section.blocks.size > 0 %}
+    {% assign selected_tab = section.blocks[0].id %}
+  {% else %}
+    {% assign selected_tab = 'tab1' %}
+  {% endif %}
+
+  {% assign link = section.settings.button_link %}
+
+  <div class="parent-container ">
+    <div x-data="{ selectedTab: '{{ selected_tab }}' }" class=" lg:px-10 md:px-4 px-2  w-full ">
+      <div
+        @keydown.right.prevent="$focus.wrap().next()"
+        @keydown.left.prevent="$focus.wrap().previous()"
+        class="flex md:justify-center overflow-x-auto whitespace-nowrap w-full mx-auto gap-2 border-b border-slate-100 dark:border-slate-300 hide-scrollbar"
+        role="tablist"
+        aria-label="tab options"
+      >
+        {% for block in section.blocks %}
+          <button
+            @click="selectedTab = '{{ block.id }}'"
+            :aria-selected="selectedTab === '{{ block.id }}'"
+            :tabindex="selectedTab === '{{ block.id }}' ? '0' : '-1'"
+            :class="selectedTab === '{{ block.id }}' ? ' text-black {{ section.settings.header_font }}  border-b border-black dark:border-black dark:text-black' :'text-slate-700 font-medium dark:text-slate-500 dark:hover:border-b-slate-300 dark:hover:text-slate-300 hover:text-black'"
+            class="h-min px-4 py-2 flex-shrink-0 {{ section.settings.header_font }} {{ section.settings.mobile_header_font }}"
+            type="button"
+            role="tab"
+            aria-controls="{{ block.id }}"
+          >
+            {{ block.settings.tab_title }}
+          </button>
+        {% endfor %}
+      </div>
+      <div class="grid plaKarl Popper'sce-content-center mt-6 py-4 text-slate-700 dark:text-slate-300">
+        {% for block in section.blocks %}
+          <div
+            x-show="selectedTab === '{{ block.id }}'"
+            id="{{ block.id }}"
+            role="tabpanel"
+            aria-label="{{ block.settings.tab_title }}"
+            class="grid md:flex md:gap-3"
+          >
+            <div class="sticky-div w-full lg:max-w-md lg:ml-auto md:mb-0 mb-2 ">
+              {% if block.settings.tab_image != blank %}
+                <div class="relative">
+                  {{ block.settings.tab_image | image_url: width: 800 | image_tag: class: 'w-full relative h-auto' }}
+
+                  <div class="absolute z-10 bottom-0 mb-4 left-0 w-full text-white p-4">
+                    <h1 class=" {{ block.settings.title_font }} {{ block.settings.text_alignment }}  w-full text-white py-4">
+                      {{ block.settings.tab_content }}
+                    </h1>
+
+                    <a href="{{ link }}" class="inline-block  w-full {{ block.settings.text_alignment }} ">
+                      <button
+                        class="
+                          {% if block.settings.button_style == 'underline' %} animate-underline-once relative inline-flex items-center justify-center uppercase text-base font-semibold text-white bg-transparent  cursor-pointer transition duration-200 ease-in-out
+                          {% elsif block.settings.button_style == 'outline' %} py-2 bg-transparent text-white  border-2 border-white border-transparent hover:bg-white hover:text-black hover:border-2 px-5
+                           {% elsif block.settings.button_style == 'normal' %} py-2 bg-white text-black border-2 border-white hover:bg-transparent hover:text-white hover:border-white px-5 focus:outline-none focus:ring {% endif %}
+                        "
+                      >
+                        {{ block.settings.button_text }}
+                      </button>
+                    </a>
+                  </div>
+
+                  <div class="absolute bg-gradient-to-t from-black/60 to-transparent inset-0 "></div>
+                </div>
+
+              {% else %}
+                <div class=" border ml-auto">
+                  {{ 'image' | placeholder_svg_tag }}
+                </div>
+              {% endif %}
+            </div>
+
+            <div class=" w-full gap-2 md:space-y-3 md:w-fit grid grid-cols-2 md:grid-cols-1 h-min md:gap-0 md:max-w-4xl md:mr-auto">
+              {% if block.settings.tab_products != blank %}
+                {% for product in block.settings.tab_products %}
+                  <div class="w-auto  md:w-fit flex ">
+                    <a href="{{ product.url }}" class=" w-full  grid md:flex">
+                      <div class="w-full flex-none md:w-[120PX] ">
+                        {{
+                          product.featured_media
+                          | image_url: width: '1000'
+                          | image_tag: class: 'md:mr-3 object-cover'
+                        }}
+                      </div>
+
+                      <div class=" md:ml-3 lg:ml-5 mt-2 md:my-auto  ">
+                        <p class=" text-sm md:text-lg text-black w-full md:w-fit mb-2">{{ product.title }}</p>
+                        <p class="text-black opacity-50 md:w-fit">{{ product.price | money }}</p>
+                      </div>
+                    </a>
+                  </div>
+                {% endfor %}
+
+              {% else %}
+                {% for block in section.blocks %}
+                  <div class="md:w-fit grid md:flex ">
+                    <a href="{{ product.url }}" class=" grid md:flex gap-2 md:gap-2">
+                      <div class="w-full md:w-[120PX] border">
+                        {{ 'product-1' | placeholder_svg_tag }}
+                      </div>
+                      <div>
+                        <h3 class="text-md w-fit ">product title</h3>
+                        <p class="mt- w-fit">$0.00</p>
+                      </div>
+                    </a>
+                  </div>
+                {% endfor %}
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<script
+  src="{{ 'button-decoration.js' | asset_url }}"
+  async
+></script>
+
+{{ 'button-decoration.css' | asset_url | stylesheet_tag }}
+
+{% schema %}
+{
+  "name": "Tabs",
+  "settings": [
+    {
+      "type": "select",
+      "id": "header_font",
+      "label": "Desktop Font Size",
+      "default": "md:text-2xl",
+      "options": [
+        {
+          "value": "md:text-xl",
+          "label": "Small"
+        },
+        {
+          "value": "md:text-2xl",
+          "label": "Medium"
+        },
+        {
+          "value": "md:text-3xl",
+          "label": "Large"
+        }
+      ]
+    },
+
+    {
+      "type": "select",
+      "id": "mobile_header_font",
+      "label": "Mobile Font Size",
+      "default": "text-lg",
+      "options": [
+        {
+          "value": "text-md",
+          "label": "Small"
+        },
+        {
+          "value": "text-lg",
+          "label": "Medium"
+        },
+        {
+          "value": "text-xl",
+          "label": "Large"
+        }
+      ]
+    },
+
+    {
+      "type": "header",
+      "content": "Section Spacing"
+    },
+
+    {
+      "type": "range",
+      "id": "section_spacing_top",
+      "label": "Top Spacing",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "section_spacing_bottom",
+      "label": "Bottom Spacing",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    }
+  ],
+  "blocks": [
+    {
+      "type": "tab",
+      "name": "Tab",
+      "settings": [
+        {
+          "type": "text",
+          "id": "tab_title",
+          "label": "Tab Title",
+          "default": "Tab Title"
+        },
+
+        {
+          "type": "image_picker",
+          "id": "tab_image",
+          "label": "Tab Image"
+        },
+        {
+          "type": "product_list",
+          "id": "tab_products",
+          "label": "Select Products",
+          "limit": 10
+        },
+        {
+          "type": "text",
+          "id": "tab_content",
+          "label": "Tab Content",
+          "default": "Your content here"
+        },
+
+        {
+          "type": "select",
+          "id": "title_font",
+          "label": "Title Font Size",
+          "default": "text-5xl",
+          "options": [
+            {
+              "value": "text-4xl",
+              "label": "Small"
+            },
+            {
+              "value": "text-5xl",
+              "label": "Medium"
+            },
+            {
+              "value": "text-6xl",
+              "label": "Large"
+            }
+          ]
+        },
+
+        {
+          "type": "header",
+          "content": "Content Position"
+        },
+        {
+          "type": "select",
+          "id": "text_alignment",
+          "label": "Align text",
+          "options": [
+            { "value": "text-left", "label": "Left" },
+            { "value": "text-center", "label": "Center" },
+            { "value": "text-right", "label": "Right" }
+          ],
+          "default": "text-center"
+        },
+
+        {
+          "type": "header",
+          "content": "Button"
+        },
+
+        {
+          "type": "text",
+          "id": "button_text",
+          "label": "Button text",
+          "default": "Discover Now"
+        },
+
+        {
+          "type": "url",
+          "label": "Button Link",
+          "id": "button_link",
+          "default": "/collections/all",
+          "info": "Select a URL, product, collection, or page link"
+        },
+
+        {
+          "type": "select",
+          "id": "button_style",
+          "label": "Button Style",
+          "default": "normal",
+          "options": [
+            {
+              "value": "normal",
+              "label": "Normal"
+            },
+            {
+              "value": "outline",
+              "label": "Outline"
+            },
+            {
+              "value": "underline",
+              "label": "Underline"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Tabs",
+      "blocks": [
+        {
+          "type": "tab"
+        },
+        {
+          "type": "tab"
+        },
+        {
+          "type": "tab"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

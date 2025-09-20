@@ -1,0 +1,100 @@
+/* Product zoom container */
+.product-zoom-container {
+  cursor: zoom-in;
+  background-color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.product-zoom-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform-origin: center;
+  will-change: transform;
+}
+
+/* Aspect ratio container */
+.aspect-w-1 {
+  position: relative;
+  padding-bottom: 100%; /* 1:1 Aspect Ratio */
+}
+
+.aspect-w-1 > * {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+/* Transitions */
+.transition-transform {
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.duration-200 {
+  transition-duration: 200ms;
+}
+
+/* Lightbox transitions */
+.transition {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .product-zoom-container {
+    cursor: pointer;
+  }
+  
+  /* Disable hover zoom on mobile */
+  .product-zoom-container img {
+    transform: none !important;
+  }
+}
+
+/* Lightbox styles */
+.zoom-overlay {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+}
+
+.zoom-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Loading spinner for zoom image */
+.zoom-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .product-single__media {
+    cursor: pointer; /* Better UX for touch devices */
+  }
+} 

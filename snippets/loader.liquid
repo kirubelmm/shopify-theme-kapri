@@ -1,0 +1,25 @@
+<!-- Neutral Loading Overlay -->
+<div 
+    class="fixed inset-0 z-50 grid place-items-center bg-black/20 backdrop-blur-sm"
+    x-show="loading"
+    role="status"
+    aria-live="polite"
+    aria-label="Loading"
+  >
+    <!-- Neutral Loader -->
+    <div 
+      class="h-1 w-32 bg-gradient-to-r from-gray-200 via-black to-gray-200"
+      style="
+        background-size: 60% 100%;
+        animation: loader 3s infinite;
+      "
+    ></div>
+  </div>
+  
+  <style>
+    @keyframes loader {
+      0%   { background-position: -150% 0, -150% 0; }
+      66%  { background-position: 250% 0, -150% 0; }
+      100% { background-position: 250% 0, 250% 0; }
+    }
+  </style>

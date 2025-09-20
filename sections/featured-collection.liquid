@@ -1,0 +1,269 @@
+<section
+  class="section-spacing-{{ section.id }} lg:px-10 md:px-4 px-2"
+  style="margin-top: {{ section.settings.section_spacing_top }}rem; margin-bottom: {{ section.settings.section_spacing_bottom }}rem; "
+>
+  <!-- Slider Collection Section -->
+  {% for block in section.blocks %}
+    {% if block.settings.collection %}
+      <div class="  ">
+        <div
+          {% for block in section.blocks %}
+          {% endfor %}
+        >
+          {% capture slider_content %}
+            {%- if block.settings.collection != blank and block.settings.collection.products.size > 0 -%}
+              {%- for product in block.settings.collection.products limit: block.settings.products_to_show -%}
+                <div id="column_range-{{ section.id }}"
+                  class="snap-start product-item "
+                  
+                 
+                  data-tags="{{ product.tags | join: ',' }}"
+                  
+                >
+                  {% render 'card-product',
+                    card_product: product,
+                    show_secondary_image: section.settings.show_secondary_image,
+                    section_id: section.id,
+                    card_text_alignment: settings.card_text_alignment
+                  %}
+                </div>
+              {%- endfor -%}
+            {%- else -%}
+              {% assign placeholders = "product-1,product-2,product-3,product-4,product-5" | split: ',' %}
+              {%- for i in (1..5) -%}
+                <div id="column_range-{{ section.id }}" 
+                  class="md:snap-center snap-start product-item"
+                >
+                  {% render 'card-product',
+                    card_product: nil,
+                    section_id: section.id,
+                    show_quick_add: true,
+                    card_text_alignment: settings.card_text_alignment,
+                    placeholder_image: placeholders[forloop.index0]
+                  %}
+                </div>
+              {%- endfor -%}
+            {%- endif -%}
+          {% endcapture %}
+        </div>
+
+        {% render 'product-slider',
+          content: slider_content,
+          section_id: section.id,
+          show_navigation: true,
+          viewall_url: section.settings.collection.url
+        %}
+      </div>
+    {% endif %}
+  {% endfor %}
+</section>
+
+{% schema %}
+{
+  "name": "Featured products",
+  "tag": "section",
+  "class": "featured-collection",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "FEATURED COLLECTION"
+    },
+
+    {
+      "type": "header",
+      "content": "Header Font Size"
+    },
+
+    {
+      "type": "select",
+      "id": "header_font",
+      "label": "Desktop Font Size",
+      "default": "md:text-2xl",
+      "options": [
+        {
+          "value": "md:text-xl",
+          "label": "Small"
+        },
+        {
+          "value": "md:text-2xl",
+          "label": "Medium"
+        },
+        {
+          "value": "md:text-3xl",
+          "label": "Large"
+        }
+      ]
+    },
+
+    {
+      "type": "select",
+      "id": "mobile_header_font",
+      "label": "Mobile Font Size",
+      "default": "text-lg",
+      "options": [
+        {
+          "value": "text-md",
+          "label": "Small"
+        },
+        {
+          "value": "text-lg",
+          "label": "Medium"
+        },
+        {
+          "value": "text-xl",
+          "label": "Large"
+        }
+      ]
+    },
+
+    {
+      "type": "header",
+      "content": "Slider"
+    },
+
+    {
+      "type": "checkbox",
+      "id": "slider",
+      "default": true,
+      "label": "Enable slideshow"
+    },
+    {
+      "type": "checkbox",
+      "id": "scroll_bar",
+      "default": true,
+      "label": "Scroll Bar"
+    },
+
+    {
+      "type": "checkbox",
+      "id": "viewall",
+      "default": true,
+      "label": "Enable Discover all"
+    },
+
+    {
+      "type": "header",
+      "content": "Columns"
+    },
+
+    {
+      "type": "select",
+      "id": "column_desktop",
+      "label": "Desktop column",
+      "default": "4",
+      "options": [
+        {
+          "value": "1",
+          "label": "1 Column"
+        },
+        {
+          "value": "2",
+          "label": "2 Columns"
+        },
+        {
+          "value": "3",
+          "label": "3 Columns"
+        },
+        {
+          "value": "4",
+          "label": "4 Columns"
+        },
+        {
+          "value": "5",
+          "label": "5 Columns"
+        }
+      ]
+    },
+
+    {
+      "type": "select",
+      "id": "column_mobile",
+      "label": "Mobile column",
+      "default": "1",
+      "options": [
+        {
+          "value": "1",
+          "label": "1 Column"
+        },
+        {
+          "value": "2",
+          "label": "2 Columns"
+        }
+      ]
+    },
+
+    {
+      "type": "range",
+      "id": "column_gap",
+      "label": "Column gap",
+      "min": 1,
+      "max": 32,
+      "step": 1,
+      "default": 8
+    },
+
+    {
+      "type": "header",
+      "content": "Section Spacing"
+    },
+
+    {
+      "type": "range",
+      "id": "section_spacing_top",
+      "label": "Top Spacing",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "section_spacing_bottom",
+      "label": "Bottom Spacing",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    }
+  ],
+
+  "blocks": [
+    {
+      "type": "Collection",
+      "name": "collection",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Choose Collection"
+        },
+
+        {
+          "type": "range",
+          "id": "products_to_show",
+          "min": 2,
+          "max": 24,
+          "step": 2,
+          "default": 16,
+          "label": "t:sections.featured-collection.settings.products_to_show.label"
+        }
+      ]
+    }
+  ],
+
+  "presets": [
+    {
+      "name": "Featured products",
+
+      "blocks": [
+        {
+          "type": "Collection"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

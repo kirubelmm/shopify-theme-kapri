@@ -1,0 +1,538 @@
+{% if template.name == 'index' or section.settings.transparent_header_product and template.name == 'product' %}
+  <style>
+    /* Core header styles */
+    .header-wrapper {
+      width: 100%;
+      z-index: 10;
+      transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+
+    }
+
+    /* Default header state */
+    .header-wrapper {
+      position: relative;
+      background-color: white;
+      color: black;
+    }
+
+    /* Transparent header styles - only at page top */
+    {% if section.settings.transparent_header %}
+
+          {% if template.name == 'index' %}
+
+        .header-wrapper.transparent {
+          position: absolute;
+          width: 100%;
+          /* fade from 10% black at top to fully transparent */
+          background: linear-gradient(
+            to bottom,
+            rgba(0, 0, 0, 0.1),
+            rgba(0, 0, 0, 0)
+          );
+
+
+          color: white;
+          transition: background 0.3s ease;
+        }
+        /* Optional: once user scrolls past the top, you could switch to a solid semi‑black */
+        .header-wrapper.scrolled {
+          background: rgba(0, 0, 0, 0.05);
+        }
+
+      {% endif %}
+
+    {% if section.settings.transparent_header_product and template.name == 'product' %}
+
+      @media screen and (max-width: 749px) {
+
+        .header-wrapper.transparent {
+          position: absolute;
+          width: 100%;
+          /* fade from 10% black at top to fully transparent */
+          background: linear-gradient(
+            to bottom,
+            rgba(0, 0, 0, 0.1),
+            rgba(0, 0, 0, 0)
+          );
+
+
+          color: white;
+          transition: background 0.3s ease;
+        }
+        /* Optional: once user scrolls past the top, you could switch to a solid semi‑black */
+        .header-wrapper.scrolled {
+          background: rgba(0, 0, 0, 0.05);
+        }
+      }
+
+      {% endif %}
+
+      {% endif %}
+
+
+    /* Fixed/sticky header styles */
+    .shopify-section-header-sticky {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 40;
+    }
+
+    .shopify-section-header-hidden {
+      transform: translateY(-100%);
+    }
+
+    .shopify-section-header-sticky.animate {
+      transition: transform 0.3s ease;
+    }
+
+    /* Menu open state - always white background */
+    .header-wrapper.menu-open {
+      background-color: white !important;
+      color: black !important;
+    }
+  </style>
+{% endif %}
+
+{% style %}
+  /* Breadcrumb Block Styles */
+  {% for block in section.blocks %}
+  .header-breadcrumbs {
+    --bc-separator: '/';
+    --bc-spacing: {{ block.settings.spacing }}px;
+    order: {% if block.settings.position == 'top-left' %} -1 {% elsif block.settings.position == 'top-right' %} 100 {% else %} 0 {% endif %};
+
+  }
+  {% endfor %}
+
+  .header-breadcrumbs[data-separator="chevron"] { --bc-separator: '›'; }
+  .header-breadcrumbs[data-separator="middot"] { --bc-separator: '·'; }
+
+  .breadcrumb-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--bc-spacing);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .breadcrumb-item:not(:last-child)::after {
+    content: var(--bc-separator);
+    margin-left: var(--bc-spacing);
+    opacity: 0.6;
+  }
+
+  .breadcrumb-link {
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .breadcrumb-link:hover {
+    opacity: 0.7;
+  }
+
+  .current-page {
+    opacity: 0.8;
+    pointer-events: none;
+  }
+
+  @media screen and (max-width: 749px) {
+    .header-breadcrumbs {
+      order: 999;
+      margin: 0.5rem 0 0;
+      font-size: 0.8em;
+    }
+  }
+{% endstyle %}
+
+<div class="section-header ">
+  <header
+    id="site-header"
+    class="header header-wrapper py-1 bg-opacity-0 lg:px-10 md:px-4 px-2 items-center {% if section.settings.transparent_header %}transparent{% endif %}"
+  >
+    <div class="header__logo my-2 md:my-0 md:mr-auto md:ml-0" style="max-width: {{ section.settings.logo_width }}px;">
+      {% if section.settings.logo != blank %}
+        <a href="/" class="header__logo">
+          {{ section.settings.logo | image_url: width: 400 | image_tag: loading: 'lazy' }}
+        </a>
+      {% else %}
+        <a href="/" class="header__logo-title font-serif tracking-widest text-2xl">
+          {{ shop.name }}
+        </a>
+      {% endif %}
+    </div>
+
+    <nav class="header__menu flex justify-end text-xs" x-data>
+      <ul class="header__menu-nav uppercase text-sm mx-auto hidden md:flex">
+        {% for link in section.settings.menu.links %}
+          {% if link.links != blank %}
+            <li class="nav__item py-2 px-4 block relative">
+              <a href="{{ link.url }}">{{ link.title }}</a>
+              <ul class="nav__item-submenu absolute bg-white border py-2 px-4 min-w-[160px] top-16 left-1/2 transform -translate-x-1/2">
+                {% for sublink in linklists[link.handle].links %}
+                  <li>
+                    <a class="block py-1 hover:opacity-75" href="{{ sublink.url }}">
+                      {{ sublink.title }}
+                    </a>
+                  </li>
+                {% endfor %}
+              </ul>
+            </li>
+          {% else %}
+            <li>
+              <a class="nav__item py-2 px-4 block" href="{{ link.url }}">{{ link.title }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </nav>
+
+    <div
+      class="header__icons flex items-center justify-end md:space-x-6 space-x-5"
+      x-data="{ cart_count: {{ cart.item_count }} }"
+      @cart-count-updated.window="cart_count = $event.detail"
+    >
+      {% if section.settings.enable_search %}
+        <div class="">
+          {% render 'search-input' %}
+        </div>
+      {% endif %}
+
+      {%- if shop.customer_accounts_enabled -%}
+        <div class="relative hidden md:block account-menu-wrapper z-10">
+          <a
+            href="{{ routes.account_url }}"
+            title="account link"
+            class="header__icon block text-center"
+          >
+            {% render 'icon-account', class: ' mx-auto' %}
+            <span class="sr-only">
+              {%- liquid
+                if customer
+                  echo 'customer.account_fallback' | t
+                else
+                  echo 'customer.account_fallback' | t
+                endif
+              -%}
+            </span>
+          </a>
+        </div>
+      {%- endif -%}
+
+      <button
+        type="button"
+        title="Cart button"
+        @click="$dispatch('toggle-cart')"
+        class="header__icon text-center relative"
+      >
+        {% render 'icon-cart', class: '' %}
+        <span class="sr-only">{{ 'templates.cart.cart' | t }}</span>
+        {% if cart.item_count > 0 %}
+          <span
+            x-text="cart_count"
+            class="cart__count size-5 shadow-md p-[2px] md:p-1 absolute grid place-content-center rounded-full bottom-3 -right-2 bg-sky-600 border  border-gray-100 text-white text-[10px] "
+          >
+            {{ cart.item_count }}
+          </span>
+        {% endif %}
+      </button>
+
+      <button class="md:hidden my-auto" @click="$dispatch('toggle-menu')" type="button">
+        {% render 'icon-menu', class: 'md:w-10' %}
+      </button>
+    </div>
+
+    {% render 'mobile-menu' %}
+  </header>
+
+  {% liquid
+    for block in section.blocks
+      if block.type == 'breadcrumbs'
+        assign show_breadcrumbs = true
+        assign breadcrumb_block = block
+        break
+      endif
+    endfor
+  %}
+
+  {% if show_breadcrumbs and breadcrumb_block %}
+    {% unless template.name == 'index' or template == '404' or template == 'page' or template.name == 'cart' %}
+      <div class=" {% for block in section.blocks %} {% if block.settings.transparent_breadcrumbs %} bg-transparent {% else %} bg-gray-50 {% endif %} hidden md:block {% endfor %} ">
+        <div
+          class="header-breadcrumbs lg:px-10 md:px-4 px-2 lowercase  text-xs py-1 "
+          data-separator="{{ breadcrumb_block.settings.separator }}"
+          {% for block in section.blocks %}
+            {{ block.shopify_attributes }}
+          {% endfor %}
+        >
+          <ol class="breadcrumb-list">
+            <li class="breadcrumb-item">
+              <a href="{{ routes.root_url }}" class="breadcrumb-link "> Home </a>
+            </li>
+
+            {% case template.name %}
+              {% when 'product' %}
+                {% if product.collections.size > 0 %}
+                  <li class="breadcrumb-item px-1 ">
+                    <a href="{{ product.collections.first.url }}" class="breadcrumb-link">
+                      {{ product.collections.first.title }}
+                    </a>
+                  </li>
+                {% endif %}
+                <li class="breadcrumb-item current-page px-1 ">
+                  {{ product.title }}
+                </li>
+
+              {% when 'collection' %}
+                <li class="breadcrumb-item current-page px-1 ">
+                  {{ collection.title }}
+                </li>
+
+              {% when 'blog' %}
+                <li class="breadcrumb-item current-page px-1 ">
+                  {{ blog.title }}
+                </li>
+
+              {% when 'article' %}
+                <li class="breadcrumb-item px-1">
+                  <a href="{{ blog.url }}" class="breadcrumb-link">
+                    {{ blog.title }}
+                  </a>
+                </li>
+                <li class="breadcrumb-item current-page px-1 ">
+                  {{ article.title }}
+                </li>
+
+              {% when 'page' %}
+                <li class="breadcrumb-item current-page px-1 ">
+                  {{ page.title }}
+                </li>
+
+              {% else %}
+                <li class="breadcrumb-item current-page px-1">
+                  {{ page_title }}
+                </li>
+            {% endcase %}
+          </ol>
+        </div>
+      </div>
+    {% endunless %}
+  {% endif %}
+</div>
+
+{%- if request.page_type == 'index' -%}
+  {% assign potential_action_target = shop.url | append: routes.search_url | append: '?q={search_term_string}' %}
+  <script type="application/ld+json">
+    {
+      "@context": "http://schema.org",
+      "@type": "WebSite",
+      "name": {{ shop.name | json }},
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {{ potential_action_target | json }},
+        "query-input": "required name=search_term_string"
+      },
+      "url": {{ shop.url | append: page.url | json }}
+    }
+  </script>
+{%- endif -%}
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const header = document.querySelector('.section-header');
+    const headerInner = document.querySelector('.header-wrapper');
+    const announcementBar = document.querySelector('.announcement-bar');
+    let lastScrollTop = 0;
+    let headerBounds = {};
+    let preventReveal = false;
+    
+    // Update CSS variables for header and announcement bar heights
+    const updateHeights = () => {
+      const announcementHeight = announcementBar ? announcementBar.offsetHeight : 0;
+      const headerHeight = headerInner.offsetHeight;
+      document.documentElement.style.setProperty('--announcement-bar-height', `${announcementHeight}px`);
+      document.documentElement.style.setProperty('--header-height', `${headerHeight}px`);
+    };
+    
+    // Initialize IntersectionObserver to detect when scrolled past header
+    const createObserver = () => {
+      let observer = new IntersectionObserver((entries) => {
+        headerBounds = entries[0].intersectionRect;
+        observer.disconnect();
+      });
+      
+      observer.observe(header);
+    };
+    
+    // Functions to handle header state changes
+    const hideHeader = () => {
+      {% if section.settings.enable_sticky_header %}
+        header.classList.add('shopify-section-header-hidden', 'shopify-section-header-sticky');
+      {% endif %}
+    };
+    
+    const revealHeader = () => {
+      {% if section.settings.enable_sticky_header %}
+        header.classList.add('shopify-section-header-sticky', 'animate');
+        header.classList.remove('shopify-section-header-hidden');
+      {% endif %}
+    };
+    
+    const resetHeader = () => {
+      {% if section.settings.enable_sticky_header %}
+        header.classList.remove('shopify-section-header-hidden', 'shopify-section-header-sticky', 'animate');
+        // Handle transparent header state at top of page
+        if ({% if section.settings.transparent_header %}true{% else %}false{% endif %}) {
+          headerInner.classList.add('transparent');
+        }
+      {% endif %}
+    };
+    
+    // Improved scroll handler with better performance
+    const handleScroll = () => {
+      requestAnimationFrame(() => {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        
+        {% if section.settings.enable_sticky_header %}
+          // At the top of the page
+          if (scrollTop <= headerBounds.top) {
+            resetHeader();
+            // Reset last scroll position
+            lastScrollTop = scrollTop;
+            return;
+          } 
+          
+          // Remove transparent state when scrolled past top area
+          headerInner.classList.remove('transparent');
+          
+          // Detect scroll direction and show/hide header accordingly
+          if (scrollTop > lastScrollTop && scrollTop > headerBounds.bottom) {
+            // Scrolling down - hide header
+            hideHeader();
+          } else if (scrollTop < lastScrollTop && scrollTop > headerBounds.bottom) {
+            // Scrolling up - show header
+            if (!preventReveal) {
+              revealHeader();
+            }
+          }
+          
+          lastScrollTop = scrollTop;
+        {% endif %}
+      });
+    };
+    
+    {% if section.settings.enable_sticky_header %}
+      // Listen for scroll events with passive flag for better performance
+      window.addEventListener('scroll', handleScroll, { passive: true });
+    {% endif %}
+    
+    // Handle menu toggle events
+    document.addEventListener('toggle-menu', function() {
+      if (headerInner.classList.contains('menu-open')) {
+        headerInner.classList.remove('menu-open');
+      } else {
+        headerInner.classList.add('menu-open');
+      }
+      updateHeights();
+    });
+
+    // Initialize header state and event listeners
+    updateHeights();
+    createObserver();
+    window.addEventListener('resize', updateHeights);
+  });
+</script>
+
+{% schema %}
+{
+  "name": "t:sections.header.name",
+  "class": "section-header",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "t:sections.header.settings.logo.label"
+    },
+    {
+      "type": "range",
+      "id": "logo_width",
+      "min": 50,
+      "max": 250,
+      "step": 10,
+      "default": 100,
+      "unit": "t:sections.header.settings.logo_width.unit",
+      "label": "t:sections.header.settings.logo_width.label"
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "default": "main-menu",
+      "label": "t:sections.header.settings.menu.label"
+    },
+
+    {
+      "type": "checkbox",
+      "id": "enable_sticky_header",
+      "default": true,
+      "label": "Sticky header"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_search",
+      "default": true,
+      "label": "Enable search"
+    },
+
+    {
+      "type": "header",
+      "content": "Homepage"
+    },
+
+    {
+      "type": "checkbox",
+      "id": "transparent_header",
+      "default": false,
+      "label": "Transparent Header"
+    },
+
+    {
+      "type": "header",
+      "content": "Product Page"
+    },
+    {
+      "type": "checkbox",
+      "id": "transparent_header_product",
+      "label": "Transparent Header On Mobile",
+      "default": true
+    }
+  ],
+  "blocks": [
+    {
+      "type": "breadcrumbs",
+      "name": "Breadcrumbs",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "separator",
+          "label": "Separator style",
+          "options": [
+            { "value": "slash", "label": "Slash (/)" },
+            { "value": "chevron", "label": "Chevron (›)" },
+            { "value": "middot", "label": " Dot (·)" }
+          ],
+          "default": "slash"
+        },
+
+        {
+          "type": "checkbox",
+          "id": "transparent_breadcrumbs",
+          "label": "Transparent background",
+          "default": false
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

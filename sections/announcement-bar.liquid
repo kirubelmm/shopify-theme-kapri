@@ -1,0 +1,126 @@
+{% if section.settings.announcment_bar %}
+  <div class="flex relative bg-almost-black h-8">
+    <div
+      x-data="
+        {
+          currentIndex: 0,
+          announcements: [{% for block in section.blocks %}'{{ block.settings.text | escape }}'{% unless forloop.last %},{% endunless %}{% endfor %}],
+          autoplayDuration: {{ section.settings.autoplay_duration }},
+          init() {
+            this.startAutoSlide();
+          },
+          startAutoSlide() {
+            setInterval(() => {
+              this.nextSlide();
+            }, this.autoplayDuration);
+          },
+          nextSlide() {
+            this.currentIndex = (this.currentIndex + 1) % this.announcements.length;
+          }
+        }
+      "
+      class="flex-1  overflow-hidden relative"
+    >
+      {% for block in section.blocks %}
+        <div
+          x-show="currentIndex === {{ forloop.index0 }}"
+          x-cloak
+          x-transition:enter="transform ease-cubic-bezier(1,0,0,1) duration-500"
+          x-transition:enter-start="translate-y-full"
+          x-transition:enter-end="translate-y-0"
+          x-transition:leave="transform ease-cubic-bezier(1,0,0,1) duration-500"
+          x-transition:leave-start="translate-y-0"
+          x-transition:leave-end="-translate-y-full"
+          class="absolute inset-0 flex items-center justify-center text-white w-full"
+        >
+          <h6 class=" text-xs">{{ block.settings.text }}</h6>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="md:flex hidden items-center justify-end absolute text-white px-5 mr-5 my-auto inset-0 rounded ">
+      {% render 'Preference' %}
+    </div>
+  </div>
+{% endif %}
+
+<style>
+  [x-cloak] {
+    display: none !important;
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Announcement bar",
+  "max_blocks": 5,
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "announcment_bar",
+      "label": "Enable announcement bar",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "text_align",
+      "label": "Text alignment",
+      "default": "center",
+      "options": [
+        { "value": "start", "label": "Text left" },
+        { "value": "center", "label": "Text center" },
+        { "value": "end", "label": "Text right" }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "autoplay_duration",
+      "label": "Autoplay Slide Duration (milliseconds)",
+      "default": 5000,
+      "min": 1000,
+      "max": 7000,
+      "step": 500,
+      "info": "Duration between slides in milliseconds. Example: 5000 for 5 seconds."
+    },
+    {
+      "type": "text",
+      "id": "button_preference",
+      "label": "Region & Language button"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "announcement",
+      "name": "Announcement",
+      "settings": [
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Text",
+          "default": "<p>Welcome to our store</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Announcement bar",
+      "category": "Announcement Bar",
+      "blocks": [
+        {
+          "type": "announcement",
+          "settings": {
+            "text": "<p>Welcome to our store</p>"
+          }
+        }
+      ],
+      "settings": {
+        "announcment_bar": true,
+        "text_align": "center",
+        "autoplay_duration": 5000,
+        "button_preference": ""
+      }
+    }
+  ]
+}
+{% endschema %}

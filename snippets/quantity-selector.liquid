@@ -1,0 +1,49 @@
+<div class="w-auto py-2 product-form__input product-form__quantity" {{ block.shopify_attributes }}>
+  <label class="form__label sr-only" for="Quantity-{{ section.id }}">
+    {{ 'products.product.quantity.label' | t }}
+  </label>
+  <div class="product-qty__wrapper max-w-fit p-1 grid grid-cols-3 border border-gray-200" 
+    x-data="{ 
+      quantity: 1,
+      minus() {
+        this.quantity = parseInt(this.quantity);
+        (this.quantity == 1) ? this.quantity = 1 : this.quantity--;
+        this.updateQuantity();
+      },
+      plus() {
+        this.quantity = parseInt(this.quantity);
+        this.quantity++;
+        this.updateQuantity();
+      },
+      updateQuantity() {
+        this.$dispatch('quantity-update', { value: this.quantity });
+      }
+    }"
+    x-init="$watch('quantity', value => updateQuantity())"
+  >
+    <button type="button" class="flex p-1 justify-center items-center cursor-pointer" @click="minus()">
+      <span class="sr-only">{{ 'products.product.quantity.decrease' | t: product: product.title | escape }}</span>
+      {% render 'icon-minus' %}
+    </button>
+
+    <input type="number" 
+           x-model.number="quantity" 
+           class="product-qty__input mx-auto text-center" 
+           value="1" 
+           min="1" 
+           max="10">
+
+    <button type="button" class="flex justify-center items-center cursor-pointer" @click="plus()">
+      <span class="sr-only">{{ 'products.product.quantity.increase' | t: product: product.title | escape }}</span>
+      {% render 'icon-plus' %}
+    </button>
+  </div>
+
+  <style>
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  </style>
+</div>

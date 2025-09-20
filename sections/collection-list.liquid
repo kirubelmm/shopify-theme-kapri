@@ -1,0 +1,413 @@
+{% style %}
+  .placeholder-svg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 0.5px solid black;
+  }
+{% endstyle %}
+
+<section
+  class="section-spacing-{{ section.id }} lg:px-10 px-4"
+  style="margin-top: {{ section.settings.section_spacing_top }}rem; margin-bottom: {{ section.settings.section_spacing_bottom }}rem;"
+>
+  <div>
+    {% capture slider_content %}
+    {% for block in section.blocks %}
+      {% assign collection = block.settings.collection_list %}
+        <div id="column_range-{{ section.id }}" class="snap-center group transition-all duration-500 ease-in-out" {{ block.shopify_attributes }}>
+          <a href="{{ collection.url }}" class="w-full">
+            <div class="overflow-hidden">
+
+              
+
+              {% if block.settings.collection_video == blank and block.settings.collection_image == blank and block.settings.collection_list != blank%}
+
+
+
+                <img
+                  class="blur-up w-full object-cover transform group-hover:scale-105 transition-transform duration-300"
+                  src="{{ collection.image | image_url: width: 40 }}"
+                  data-src="{{ collection.image | image_url: width: 1000 }}"
+                  width="{{ collection.image.width }}"
+                  height="{{ collection.image.height }}"
+                  alt="{{ collection.image.alt | escape }}"
+                  loading="lazy"
+                />
+                
+                
+              {% elsif block.settings.collection_video != blank %}
+
+                <div class="relative w-full h-full"> <!-- Add a relative container -->
+
+                
+  
+                <!-- Video Section -->
+
+                
+                <div class="video-blur-container" style="aspect-ratio: {{ block.settings.collection_video.aspect_ratio }};">
+                  <!-- Blur-up loader using preview image -->
+                  <div class="video-blur-loader" 
+                       style="background-image: url({{ block.settings.collection_video.preview_image | image_url: width: 50 }});"></div>
+                
+                  <!-- Video element -->
+                  {{ block.settings.collection_video
+                    | video_tag:
+                      autoplay: true,
+                      loop: true,
+                      muted: true,
+                      controls: false,
+                      class: 'blur-up w-full object-cover transform group-hover:scale-105 transition-transform duration-300',
+                      onloadeddata: "this.classList.add('loaded'); this.closest('.video-blur-container').querySelector('.video-blur-loader').classList.add('hidden')"
+                  }}
+                </div>
+                
+                
+                
+                               
+              </div>
+    
+
+              {% elsif block.settings.collection_image != blank %}
+
+                {% assign dynamic_class = 'product_image-' | append: section.id | append: ' w-full object-cover transform group-hover:scale-105 transition-transform duration-300' %}
+
+
+                {{ block.settings.collection_image | image_url: width: 1000 | image_tag: 
+  class: dynamic_class,
+  alt: collection.title,
+  widths: "400,600,800,1000,1400,1600",
+  sizes: "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+}}
+
+                
+
+              {% else %}
+                
+                {% assign random_index = forloop.index0 | modulo: 6 | plus: 1 %}
+
+  {{ 'collection-' | append: random_index | placeholder_svg_tag: 'placeholder-svg' }}
+
+
+
+              {% endif %}
+              
+            </div>
+            
+            <span class="flex justify-between md:px-2 py-2.5 ">
+              <h3 class=" {{ section.settings.collection_font }} {{ section.settings.mobile_collection_font }} collection-title my-auto">
+                {% if block.settings.collection_title != blank %}
+                  
+                  
+                  {{ block.settings.collection_title }}
+
+                {% elsif block.settings.collection_list != blank %}
+
+                  {{ collection.title }}
+                  
+
+                {% elsif block.settings.collection_list == blank  %}
+
+                Collection Title
+                  
+                {% endif %}
+              </h3>
+              <span class=" {% if section.settings.title_arrow == false %} hidden {% endif %} mr-4 group-hover:mr-0 transition-all duration-500 ease-in-out">
+                {% render 'icon-arrow-right-v2' %}
+              </span>
+            </span>
+          </a>
+        </div>
+        
+    {% endfor %}
+  {% endcapture %}
+
+    {% render 'product-slider', content: slider_content, section_id: section.id, show_navigation: true %}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Collection List",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "FEATURED COLLECTIONS"
+    },
+
+    {
+      "type": "header",
+      "content": "Header Font Size"
+    },
+
+    {
+      "type": "select",
+      "id": "header_font",
+      "label": "Desktop Font Size",
+      "default": "md:text-2xl",
+      "options": [
+        {
+          "value": "md:text-xl",
+          "label": "Small"
+        },
+        {
+          "value": "md:text-2xl",
+          "label": "Medium"
+        },
+        {
+          "value": "md:text-3xl",
+          "label": "Large"
+        }
+      ]
+    },
+
+    {
+      "type": "select",
+      "id": "mobile_header_font",
+      "label": "Mobile Font Size",
+      "default": "text-lg",
+      "options": [
+        {
+          "value": "text-md",
+          "label": "Small"
+        },
+        {
+          "value": "text-lg",
+          "label": "Medium"
+        },
+        {
+          "value": "text-xl",
+          "label": "Large"
+        }
+      ]
+    },
+
+    {
+      "type": "header",
+      "content": "Slider"
+    },
+
+    {
+      "type": "checkbox",
+      "id": "slider",
+      "default": true,
+      "label": "Enable slideshow"
+    },
+
+    {
+      "type": "checkbox",
+      "id": "scroll_bar",
+      "default": true,
+      "label": "Scroll Bar"
+    },
+
+    {
+      "type": "checkbox",
+      "id": "viewall",
+      "default": false,
+      "label": "Enable Discover All"
+    },
+
+    {
+      "type": "header",
+      "content": "Columns"
+    },
+
+    {
+      "type": "select",
+      "id": "column_desktop",
+      "label": "Desktop column",
+      "default": "4",
+      "options": [
+        {
+          "value": "1",
+          "label": "1 Column"
+        },
+        {
+          "value": "2",
+          "label": "2 Columns"
+        },
+        {
+          "value": "3",
+          "label": "3 Columns"
+        },
+        {
+          "value": "4",
+          "label": "4 Columns"
+        },
+        {
+          "value": "5",
+          "label": "5 Columns"
+        }
+      ]
+    },
+
+    {
+      "type": "select",
+      "id": "column_mobile",
+      "label": "Mobile column",
+      "default": "1",
+      "options": [
+        {
+          "value": "1",
+          "label": "1 Column"
+        },
+        {
+          "value": "2",
+          "label": "2 Columns"
+        }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "column_gap",
+      "label": "Column gap",
+      "min": 1,
+      "max": 20,
+      "step": 1,
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "Collection card"
+    },
+
+    {
+      "type": "select",
+      "id": "collection_font",
+      "label": "Desktop Font Size",
+      "default": "md:text-sm",
+      "options": [
+        {
+          "value": "md:text-sm",
+          "label": "Small"
+        },
+        {
+          "value": "md:text-md",
+          "label": "Medium"
+        },
+        {
+          "value": "md:text-lg",
+          "label": "Large"
+        }
+      ]
+    },
+
+    {
+      "type": "select",
+      "id": "mobile_collection_font",
+      "label": "Mobile Font Size",
+      "default": "text-md",
+      "options": [
+        {
+          "value": "text-sm",
+          "label": "Small"
+        },
+        {
+          "value": "text-md",
+          "label": "Medium"
+        },
+        {
+          "value": "text-lg",
+          "label": "Large"
+        }
+      ]
+    },
+
+    {
+      "type": "checkbox",
+      "id": "title_arrow",
+      "default": true,
+      "label": "Enable Title Arrow"
+    },
+
+    {
+      "type": "header",
+      "content": "Section Spacing"
+    },
+
+    {
+      "type": "range",
+      "id": "section_spacing_top",
+      "label": "Top Spacing",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "section_spacing_bottom",
+      "label": "Bottom Spacing",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    }
+  ],
+
+  "blocks": [
+    {
+      "type": "collection",
+      "name": "Collection",
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection_list",
+          "label": "Select Collection"
+        },
+
+        {
+          "type": "header",
+          "content": "Media"
+        },
+
+        {
+          "type": "video",
+          "id": "collection_video",
+          "label": "Collection Video"
+        },
+
+        {
+          "type": "image_picker",
+          "id": "collection_image",
+          "label": "Collection Image",
+          "info": "Leave blank to use the default collection media"
+        },
+
+        {
+          "type": "text",
+          "id": "collection_title",
+          "label": "Collection Title",
+          "info": "Leave blank to use the default collection title"
+        }
+      ]
+    }
+  ],
+
+  "presets": [
+    {
+      "name": "Collection llist",
+      "blocks": [
+        {
+          "type": "collection"
+        },
+        {
+          "type": "collection"
+        },
+        {
+          "type": "collection"
+        },
+        {
+          "type": "collection"
+        },
+        {
+          "type": "collection"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

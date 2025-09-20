@@ -1,0 +1,75 @@
+<template x-teleport="body">
+  <div
+    x-data="
+      {
+        show:     false,
+        btnInView:   true,
+        footerInView: false,
+
+        init() {
+          const btn    = document.getElementById('MainAddToCartButton');
+          const footer = document.getElementById('footer');
+          if (!btn || !footer) return;
+
+          const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+              // update the right flag based on which element triggered
+              if (entry.target === btn) {
+                this.btnInView = entry.isIntersecting;
+              } else /* footer */ {
+                this.footerInView = entry.isIntersecting;
+              }
+            });
+
+            // only show the bar when the add‑to‑cart button is out of view
+            // AND the footer is not yet in view
+            this.show = !this.btnInView && !this.footerInView;
+          }, { threshold: 0 });
+
+          observer.observe(btn);
+          observer.observe(footer);
+        }
+      }
+    "
+    x-init="init()"
+    x-show="show"
+    x-cloak
+    class="
+      w-full md:w-[80%] backdrop-blur-md bg-white/90 shadow-md px-2 md:px-5 py-2
+      fixed bottom-0 md:bottom-8 left-1/2 transform -translate-x-1/2 z-10
+    "
+  >
+    <div class="flex justify-between items-center">
+      <span class=" hidden md:block">
+        <!-- Product Title -->
+        <h1 class="product__title">{{ product.title | escape }}</h1>
+
+        <ul class="list flex space-x-2" role="list">
+          {%- render '_price-element', product: product, class: 'text-lg font-medium' -%}
+          {%- for type in shop.enabled_payment_types -%}
+            <li class="list-payment__item ">
+              {{ type | payment_type_svg_tag: class: 'icon size-6 icon--full-color' }}
+            </li>
+          {%- endfor -%}
+        </ul>
+      </span>
+
+      <button
+        id="MainAddToCartButton"
+        type="button"
+        name="add"
+        @click="addToCart()"
+        class="bg-black text-white text-md font-medium w-full md:w-auto py-2.5 md:px-8 flex items-center justify-center"
+        {% if product.selected_or_first_available_variant.available == false %}
+          disabled
+        {% endif %}
+      >
+        {%- if product.selected_or_first_available_variant.available -%}
+          {{ 'products.product.add_to_cart' | t }}
+        {%- else -%}
+          {{ 'products.product.sold_out' | t }}
+        {%- endif -%}
+      </button>
+    </div>
+  </div>
+</template>

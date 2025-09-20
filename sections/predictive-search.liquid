@@ -1,0 +1,131 @@
+{%- style -%}
+    #column_range-{{ section.id }}{
+
+      flex: 0 0 calc(100% / 4.5);
+      @media (max-width: 767px) {
+          flex: 0 0 calc(100% / 1.2); }
+
+    }
+
+    #product_image-{{ section.id }}{
+
+  max-height:400px;
+  object-fit: cover;
+
+
+  }
+
+  .search-result-grid{
+    @media (max-width: 1024px) {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      overflow-y: auto;
+      height: 100%;
+      -webkit-overflow-scrolling: touch; /* For smooth scrolling on iOS */
+    }
+  }
+{%- endstyle -%}
+
+<style></style>
+
+{%- if predictive_search.performed -%}
+  <div id="predictive-search-results" class="space-y-4 w-full h-full sm:overflow-y-auto lg:overflow-hidden   ">
+    {%- if predictive_search.resources.products.size > 0 -%}
+      <ul role="listbox" aria-labelledby="predictive-search-products" class="space-y-2 h-full">
+        <div class="md:box py-4  h-full">
+          {%- for query in predictive_search.resources.queries -%}
+            <li
+              id="predictive-search-option-query-{{ forloop.index }}"
+              class="predictive-search__list-item"
+              role="option"
+              aria-selected="false"
+            >
+              <a href="{{ query.url }}" class="predictive-search__item link link--text" tabindex="-1">
+                <div class="predictive-search__item-content predictive-search__item-content--centered">
+                  <p
+                    class="predictive-search__item-heading mb-2 predictive-search__item-query-result h5"
+                    aria-label="{{ query.text }}"
+                  >
+                    {{ query.styled_text }}
+                  </p>
+                </div>
+              </a>
+            </li>
+          {%- endfor -%}
+          <div class="text-xl font-medium mb-5 ">products</div>
+
+          <div class="grid grid-cols-2 gap-2 " x-ref="slider" role="list" id="hidescroll-{{section.id}}">
+            {%- for product in predictive_search.resources.products -%}
+              <div
+                id="column_range-{{ section.id }}"
+                class=" snap-center product-item"
+                data-tags="{{ product.tags | join: ',' }}"
+                style="scroll-snap-align: center;"
+              >
+                {% comment %}
+                  {% render 'card-product',
+                    card_product: product,
+                    show_secondary_image: section.settings.show_secondary_image,
+                    show_quick_shop_override: false
+
+
+                  %}
+                {% endcomment %}
+
+                <a href="{{ product.url }}" class=" cursor ">
+                  <div class="">
+                    {%- if product.media != null -%}
+                      <img
+                        src="{{ product.featured_image | image_url: width: 900 }}"
+                        alt="{{ product.featured_image.alt | default: product.title | escape }}"
+                        class="product_image-{{ section.id }} fixed-height w-full h-auto transition-all"
+                        loading="eager"
+                        height="300"
+                        width="200"
+                      >
+                    {%- endif -%}
+
+                    <div class="py-2 space-y-0.5 ">
+                      <h3 class=" text-left card__title text-sm ">{{ product.title }}</h3>
+
+                      <p class="text-gray-500 text-sm ">{{ product.price | money }}</p>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            {%- endfor -%}
+          </div>
+        </div>
+        <button class="lg:box text-center py-2 px-4 mt-1 mr-0">
+          Search for <span class="font-semibold">“{{ predictive_search.terms }}”</span>
+        </button>
+      </ul>
+    {%- endif -%}
+  </div>
+{%- endif -%}
+
+<script>
+  document.addEventListener('alpine:init', () => {
+    Alpine.data('Slider', () => ({
+      slider: null,
+      scrollAmount: 200, // Adjust this value to control scroll amount
+
+      init() {
+        // Initialize slider reference
+        this.slider = this.$refs.slider;
+      },
+
+      next() {
+        if (this.slider) {
+          this.slider.scrollBy({ left: this.scrollAmount, behavior: 'smooth' });
+        }
+      },
+
+      prev() {
+        if (this.slider) {
+          this.slider.scrollBy({ left: -this.scrollAmount, behavior: 'smooth' });
+        }
+      },
+    }));
+  });
+</script>

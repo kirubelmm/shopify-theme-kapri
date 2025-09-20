@@ -1,0 +1,264 @@
+<script src="{{ 'facets.js' | asset_url }}" defer="defer"></script>
+
+<facet-filters-form class="facets">
+  <form id="filter-form" action="{{ routes.search_url }}" method="get">
+    <input type="hidden" name="q" value="{{ search.terms | escape }}">
+
+    {% if section.setting.enable_sorting %}
+      <!-- Sort By Section with Alpine.js state -->
+      <div
+        x-data="
+          {
+            isExpanded: true,
+            selectedSort: '{{ search.sort_by | default: search.default_sort_by }}',
+            updateSort(value) {
+              this.selectedSort = value;
+            }
+          }
+        "
+        class="border-t pt-6 mt-8 mb-6"
+      >
+        <!-- Hidden input to store sort value -->
+        <input type="hidden" name="sort_by" :value="selectedSort">
+
+        <button
+          type="button"
+          @click="isExpanded = !isExpanded"
+          class="flex w-full items-center justify-between gap-4"
+          :class="isExpanded ? 'text-onSurfaceStrong font-semibold' : 'text-onSurface font-medium'"
+          :aria-expanded="isExpanded ? 'true' : 'false'"
+        >
+          Sort By
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke-width="2"
+            stroke="currentColor"
+            class="size-5 shrink-0 transition"
+            :class="isExpanded ? 'rotate-180' : ''"
+            aria-hidden="true"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+          </svg>
+        </button>
+        <div x-cloak x-show="isExpanded" class="p-4" x-collapse>
+          <div class="radio-group">
+            {%- for option in search.sort_options -%}
+              <div class="radio-option">
+                <button
+                  type="button"
+                  @click="updateSort('{{ option.value | escape }}')"
+                  class="w-full text-left px-3 py-3"
+                  :class="selectedSort === '{{ option.value | escape }}' ? 'bg-black text-white' : 'bg-white text-black border border-black/20'"
+                >
+                  {{ option.name | escape }}
+                </button>
+              </div>
+            {%- endfor -%}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Filters Section -->
+    {%- for filter in search.filters -%}
+      <div x-data="{ isExpanded: false }" class="border-t pt-6 mt-8 mb-6">
+        <button
+          type="button"
+          @click="isExpanded = !isExpanded"
+          class="flex w-full items-center justify-between gap-4"
+          :class="isExpanded ? 'text-onSurfaceStrong font-semibold' : 'text-onSurface font-medium'"
+          :aria-expanded="isExpanded ? 'true' : 'false'"
+        >
+          {{ filter.label | escape }}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke-width="2"
+            stroke="currentColor"
+            class="size-5 shrink-0 transition"
+            :class="isExpanded ? 'rotate-180' : ''"
+            aria-hidden="true"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+          </svg>
+        </button>
+        <div x-cloak x-show="isExpanded" class="p-4" x-collapse>
+          {%- case filter.type -%}
+            {%- when 'list' -%}
+              <ul class="filter-group-display__list">
+                {%- for filter_value in filter.values -%}
+                  <li class="filter-group-display__list-item">
+                    <label class="flex items-center checkbox-button">
+                      <input
+                        type="checkbox"
+                        name="{{ filter_value.param_name }}"
+                        value="{{ filter_value.value | escape }}"
+                        id="Filter-{{ filter.param_name }}-{{ forloop.index }}"
+                        {% if filter_value.active %}
+                          checked
+                        {% endif %}
+                        {% if filter_value.count == 0 and filter_value.active == false %}
+                          disabled
+                        {% endif %}
+                      >
+                      <span class="checkbox-button__label px-3 py-3">
+                        {{ filter_value.label | escape }}
+                      </span>
+                    </label>
+                  </li>
+                {%- endfor -%}
+              </ul>
+            {%- when 'price_range' -%}
+              <div class="filter-group-display__price-range flex gap-2 justify-between">
+                <div class="filter-group-display__price-range-from grid items-center">
+                  <label class="mr-2" for="Filter-{{ filter.min_value.param_name }}">Min</label>
+                  <input
+                    class="price-range-button__label px-3 py-3"
+                    name="{{ filter.min_value.param_name }}"
+                    id="Filter-{{ filter.min_value.param_name }}"
+                    {% if filter.min_value.value %}
+                      value="{{ filter.min_value.value | money_without_currency | replace: ',', '' }}"
+                    {% endif %}
+                    type="number"
+                    placeholder="0"
+                    min="0"
+                    max="{{ filter.range_max | money_without_currency | replace: ',', '' }}"
+                  >
+                </div>
+                <div class="filter-group-display__price-range-to grid items-center">
+                  <label class="mr-2" for="Filter-{{ filter.max_value.param_name }}">Max</label>
+                  <input
+                    class="price-range-button__label px-3 py-3"
+                    name="{{ filter.max_value.param_name }}"
+                    id="Filter-{{ filter.max_value.param_name }}"
+                    {% if filter.max_value.value %}
+                      value="{{ filter.max_value.value | money_without_currency | replace: ',', '' }}"
+                    {% endif %}
+                    type="number"
+                    placeholder="{{ filter.range_max | money_without_currency | replace: ',', '' }}"
+                    min="0"
+                    max="{{ filter.range_max | money_without_currency | replace: ',', '' }}"
+                  >
+                </div>
+              </div>
+          {%- endcase -%}
+        </div>
+      </div>
+    {%- endfor -%}
+
+    <!-- Apply Button -->
+    <div class="py-4 w-full border-t bg-white flex justify-between sticky bottom-0 gap-2">
+      <a
+        href="{{ routes.search_url }}?q={{ search.terms | escape }}&sort_by={{ search.sort_by | escape }}"
+        class="w-1/2 text-center border border-gray-400 text-gray-700 px-4 py-2 rounded-sm transition hover:bg-gray-100"
+      >
+        Clear All
+      </a>
+      <input
+        type="button"
+        value="Apply Filters"
+        class="w-1/2 bg-black text-white px-4 py-2 rounded-sm transition bg-opacity-85 hover:bg-opacity-100 cursor-pointer"
+        id="apply-filters-btn"
+      >
+    </div>
+  </form>
+</facet-filters-form>
+
+<!-- Keep your existing CSS -->
+<style>
+  /* Your existing styles... */
+</style>
+
+<!-- Simplified JavaScript -->
+<script>
+  class FacetFiltersForm extends HTMLElement {
+    constructor() {
+      super();
+      this.form = this.querySelector('form');
+      this.applyButton = this.querySelector('#apply-filters-btn');
+      this.init();
+    }
+
+    init() {
+      if (this.applyButton) {
+        this.applyButton.addEventListener('click', this.onApplyHandler.bind(this));
+      }
+    }
+
+    onApplyHandler(event) {
+      const formData = new FormData(this.form);
+      const searchParams = new URLSearchParams(formData).toString();
+      window.location.search = searchParams;
+    }
+  }
+
+  customElements.define('facet-filters-form', FacetFiltersForm);
+</script>
+
+<style>
+    /* Remove focus outline/underline from buttons */
+  button:focus {
+    outline: none; /* Removes the default focus outline */
+    box-shadow: none; /* Removes any focus box-shadow */
+  }
+
+  /* Optional: Add custom focus styles for better accessibility */
+  button:focus-visible {
+    outline: 2px solid blue; /* Adds a visible outline for keyboard navigation */
+    outline-offset: 2px; /* Adds space between the outline and the button */
+  }
+
+    /* Styling for checkbox as a button */
+  /* Styling for checkbox as a button */
+  .checkbox-button {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    margin: 4px;
+  }
+
+  .checkbox-button input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .checkbox-button__label {
+    display: block;
+    {% comment %} padding: 10px 15px; {% endcomment %}
+    background-color: white; /* Default background color */
+    border: 1px solid rgba(0, 0, 0, 0.2); /* Thin black border with lower opacity */
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    cursor: pointer;
+    box-shadow: none; /* Ensure no shadow is applied */
+  }
+
+  .price-range-button__label {
+    display: block;
+    background-color: white; /* Default background color */
+    border: 1px solid rgba(0, 0, 0, 0.2); /* Thin black border with lower opacity */
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    cursor: pointer;
+    box-shadow: none; /* Ensure no shadow is applied */
+  }
+
+  .checkbox-button input:checked + .checkbox-button__label {
+    background-color: black; /* Background color when checked */
+    color: white; /* Text color when checked */
+    border-color: black; /* Border color when checked */
+    box-shadow: none; /* Remove any shadow when checked */
+  }
+
+  .checkbox-button input:disabled + .checkbox-button__label {
+    background-color: #e0e0e0; /* Grey background for disabled state */
+    color: #a0a0a0; /* Grey text for disabled state */
+    cursor: not-allowed;
+  }
+
+  .checkbox-button input:not(:checked) + .checkbox-button__label {
+    transition: background-color 0.3s ease, border-color 0.3s ease; /* Adding smooth transition */
+  }
+</style>

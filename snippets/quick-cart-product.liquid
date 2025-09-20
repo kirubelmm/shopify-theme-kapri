@@ -1,0 +1,161 @@
+{% comment %}
+  {%- assign unique_form_id = 'quick_add_form_' | append: product.id | append: '-' | append: section.id -%}
+
+  <div
+    x-data="
+      {
+        quantity: 1,
+        variantId: '{{ product.selected_or_first_available_variant.id }}',
+        tooltipVisible: false,
+        addToCart() {
+          const form = document.getElementById('{{ unique_form_id }}');
+          const formData = new FormData(form);
+          formData.set('quantity', this.quantity);
+
+          fetch('/cart/add.js', {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' },
+            body: formData
+          })
+          .then(response => {
+            if (!response.ok) throw new Error('Add to cart failed');
+            return response.json();
+          })
+          .then(data => {
+            this.$dispatch('cart-updated');
+            this.$dispatch('toggle-cart');
+            console.log('Product added to cart:', data);
+            // Show tooltip on successful add:
+            this.tooltipVisible = true;
+            setTimeout(() => { this.tooltipVisible = false; }, 2000);
+          })
+          .catch(error => {
+            console.error('Cart Error:', error);
+          });
+        }
+      }
+    "
+    x-init="$watch('variantId', value => { $refs.hiddenField.value = value; })"
+    class="popup-quick-add-{{ section.id }} mx-2 mb-1"
+  >
+    <form id="{{ unique_form_id }}" class="space-y-2 form-quick-add-{{ section.id }}">
+      <!-- Variant Picker: Dropdown -->
+      <div class="variant-picker-{{ section.id }}">
+        <label for="variant-select-{{ unique_form_id }}-{{ section.id }}" class="block text-sm font-medium text-gray-700">
+          Select a {{ product.options_with_values[0].name }}
+        </label>
+
+        <div class="mt-1 flex flex-wrap gap-2">
+          {% for variant in product.variants %}
+            <button
+              type="button"
+              @click="variantId = '{{ variant.id }}'"
+              :class="{'bg-black text-white': variantId === '{{ variant.id }}', 'bg-white text-gray-700 border border-gray-300': variantId !== '{{ variant.id }}'}"
+              class="px-3 py-1 text-sm focus:outline-none"
+            >
+              {{ variant.title }}
+            </button>
+          {% endfor %}
+        </div>
+
+        <!-- Hidden input to store the selected variant id -->
+        <input
+          type="hidden"
+          name="id"
+          x-ref="hiddenField"
+          value="{{ product.selected_or_first_available_variant.id }}"
+          class="hidden-variant-{{ section.id }}"
+        >
+      </div>
+
+      <!-- Add to Cart Button with Tooltip -->
+      <div class="relative add-button-wrapper-{{ section.id }}">
+        <button
+          type="button"
+          @click="addToCart()"
+          class="w-full bg-black text-white py-2 text-sm font-medium add-to-cart-btn-{{ section.id }}"
+        >
+          Add to Cart
+        </button>
+        <!-- Tooltip that shows when tooltipVisible is true -->
+        <div
+          x-show="tooltipVisible"
+          x-transition:enter="transition ease-out duration-200"
+          x-transition:enter-start="opacity-0 -translate-y-2"
+          x-transition:enter-end="opacity-100 translate-y-0"
+          x-transition:leave="transition ease-in duration-200"
+          x-transition:leave-start="opacity-100 translate-y-0"
+          x-transition:leave-end="opacity-0 -translate-y-2"
+          class="fixed -top-9 flex gap-2 items-center bg-white p-2 shadow-xl border border-gray-100 left-1/2 -translate-x-1/2 z-10 whitespace-nowrap bg-surface-dark px-2 py-1 text-center text-sm text-on-surface-dark-strong "
+          role="tooltip"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10s10-4.5 10-10S17.5 2 12 2m-2 15l-5-5l1.41-1.41L10 14.17l7.59-7.59L19 8z"/>
+          </svg>
+          Added to Cart
+        </div>
+      </div>
+    </form>
+  </div>
+{% endcomment %}
+
+{% assign card_product = product %}
+
+<ajax-cart-product-form>
+  <form
+    class="quick-add-form mx-2 my-1 "
+    method="post"
+    action="/cart/add"
+    enctype="multipart/form-data"
+    data-product-id="{{ card_product.id }}"
+    {% if card_product.variants.size > 1 %}
+      data-variants="{{ card_product.variants | json | escape }}"
+      data-option-count="{{ card_product.options.size | default: 0 }}"
+    {% endif %}
+  >
+    {% if card_product.variants.size > 1 %}
+      {% for option in card_product.options_with_values %}
+        <div class="variant-option-group" data-option-position="{{ option.position }}">
+          <label class=" font-medium hidden mb-1">{{ option.name }}</label>
+          <div class="grid grid-cols-5 gap-1">
+            {% for value in option.values %}
+              <div class="inline-block space-y-1">
+                <input
+                  type="radio"
+                  id="option-{{ section_id | default: 'prod' }}-{{ card_product.id }}-{{ option.position }}-{{ value | handleize }}"
+                  name="options[{{ option.name | escape }}]"
+                  value="{{ value | escape }}"
+                  class="peer hidden variant-option"
+                  data-option-position="{{ option.position }}"
+                  data-value="{{ value | escape }}"
+                  {% if option.selected_value == value %}
+                    checked
+                  {% endif %}
+                  required
+                >
+                <label
+                  for="option-{{ section_id | default: 'prod' }}-{{ card_product.id }}-{{ option.position }}-{{ value | handleize }}"
+                  class="inline-flex w-full bg-white text-xs font-semibold items-center justify-center px-3 py-2 border border-black/10 cursor-pointer transition peer-checked:border-blue-600 peer-checked:bg-black peer-checked:text-white hover:bg-black hover:text-white"
+                >
+                  {{ value }}
+                </label>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+      <input
+        type="hidden"
+        name="id"
+        class="selected-variant-id"
+        value="{{ card_product.selected_or_first_available_variant.id }}"
+      >
+      <div class="variant-error-message text-red-600 text-sm mt-2 hidden">Please select all options</div>
+    {% else %}
+      {% comment %} Single variant product - no options to select {% endcomment %}
+      <input type="hidden" name="id" value="{{ card_product.variants.first.id }}">
+    {% endif %}
+
+    <button type="submit" name="add" class="w-full bg-black text-white py-2 mt-2">Add to Bag</button>
+  </form>
+</ajax-cart-product-form>

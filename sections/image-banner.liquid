@@ -1,0 +1,424 @@
+{%- style -%}
+  {% if section.settings.desktop_banner != blank %}
+    #desktop-{{ section.id }} {
+      background-image: url('{{ section.settings.desktop_banner | image_url }}');
+      background-size: cover;
+      background-position: center;
+    }
+    {% else %}
+
+
+      {% assign lifestyle_svg = 'lifestyle-2' | placeholder_svg_tag %}
+      #desktop-{{ section.id }} {
+        background-image: url('data:image/svg+xml;charset=utf8,{{ lifestyle_svg | url_encode }}');
+    background-size: cover;
+    background-position: center;
+  }
+
+  {% endif %}
+
+    #align_div-{{ section.id }} {
+      align-content: {{ section.settings.vertical_alignment }};
+      justify-content: {{ section.settings.horizontal_alignment }};
+    }
+
+
+    #image-banner-{{ section.id }} {
+      height: calc({{ section.settings.banner_size }}lvh - 2.5rem);
+      position: relative ;
+      overflow: hidden;
+    }
+
+    .overlay{
+      opacity: 0.{{ section.settings.overlay_opacity }};
+      background: {{ section.settings.background }};
+    }
+{%- endstyle -%}
+
+<section>
+  <div id="image-banner-{{ section.id }}" class="" x-data="videoPlayer" x-init="init">
+    <div
+      {% if section.settings.banner_video == blank %}
+        id="desktop-{{ section.id }}"
+      {% endif %}
+      class="absolute inset-0 overflow-hidden z-0"
+    >
+      {{
+        section.settings.banner_video
+        | video_tag:
+          autoplay: true,
+          loop: true,
+          muted: true,
+          controls: false,
+          image_size: '600x',
+          class: 'h-full object-cover w-full'
+      }}
+    </div>
+
+    <!-- Add this overlay div -->
+    <div class="absolute inset-0  overlay"></div>
+
+    {% if section.settings.banner_video != blank and section.settings.play_button == true %}
+      <!-- Play/Pause buttons -->
+      <button
+        id="playPauseBtn"
+        class="absolute bottom-5 left-5 z-10 p-1 rounded-full text-white opacity-60 transition hover:bg-black/50 hover:opacity-80 focus-visible:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 active:outline-offset-0"
+        x-data="{ playing: false }"
+        @click="playing = !playing"
+      >
+        <template x-if="playing">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+            class="size-8"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M2 10a8 8 0 1 1 16 0 8 8 0 0 1-16 0Zm6.39-2.908a.75.75 0 0 1 .766.027l3.5 2.25a.75.75 0 0 1 0 1.262l-3.5 2.25A.75.75 0 0 1 8 12.25v-4.5a.75.75 0 0 1 .39-.658Z"
+              clip-rule="evenodd"
+            ></path>
+          </svg>
+        </template>
+        <template x-if="!playing">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+            class="size-8 "
+          >
+            <path
+              fill-rule="evenodd"
+              d="M2 10a8 8 0 1 1 16 0 8 8 0 0 1-16 0Zm5-2.25A.75.75 0 0 1 7.75 7h.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-.75.75h-.5a.75.75 0 0 1-.75-.75v-4.5Zm4 0a.75.75 0 0 1 .75-.75h.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-.75.75h-.5a.75.75 0 0 1-.75-.75v-4.5Z"
+              clip-rule="evenodd"
+            ></path>
+          </svg>
+        </template>
+      </button>
+    {% endif %}
+
+    <div id="align_div-{{ section.id }}" class="relative text-white grid h-full w-full md:p-6 p-3 ">
+      <span class="overflow-hidden space-y-5 {{ section.settings.text_alignment }} space-y-2 max-w-lg">
+        {% if section.settings.title != blank %}
+          <h1 class="{{ section.settings.title_font }} w-[100%]">{{ section.settings.title }}</h1>
+        {% endif %}
+
+        {% if section.settings.description != blank %}
+          <p class="{{ section.settings.description_font }}">{{ section.settings.description }}</p>
+        {% endif %}
+
+        {% if section.settings.button_text != blank %}
+          {% assign link = section.settings.button_link %}
+
+          {% if link %}
+            <a href="{{ link }}" class="inline-block mr-4 ">
+              <button
+                class="
+                  {% if section.settings.button_style == 'underline' %} animate-underline-once relative inline-flex items-center justify-center uppercase text-base font-semibold text-white bg-transparent  cursor-pointer transition duration-200 ease-in-out
+                  {% elsif section.settings.button_style == 'outline' %} py-2 bg-transparent text-white  border-2 border-white border-transparent hover:bg-white hover:text-black hover:border-2 px-5
+                   {% elsif section.settings.button_style == 'normal' %} py-2 bg-white text-black border-2 border-white hover:bg-transparent hover:text-white hover:border-white px-5 focus:outline-none focus:ring {% endif %}
+                "
+              >
+                {{ section.settings.button_text }}
+              </button>
+            </a>
+          {% endif %}
+        {% endif %}
+
+        {% if section.settings.button_text_2 != blank %}
+          {% assign link = section.settings.button_link_2 %}
+
+          {% if link %}
+            <a href="{{ link }}" class="inline-block">
+              <button
+                class="
+                  {% if section.settings.button_style_2 == 'underline' %} animate-underline-once relative inline-flex items-center justify-center uppercase text-base font-semibold text-white bg-transparent  cursor-pointer transition duration-200 ease-in-out
+                  {% elsif section.settings.button_style_2 == 'outline' %} py-2 bg-transparent text-white  border-2 border-white border-transparent hover:bg-white hover:text-black hover:border-2 px-5
+                   {% elsif section.settings.button_style_2 == 'normal' %} py-2 bg-white text-black border-2 border-white hover:bg-transparent hover:text-white hover:border-white px-5 focus:outline-none focus:ring {% endif %}
+                "
+              >
+                {{ section.settings.button_text_2 }}
+              </button>
+            </a>
+          {% endif %}
+        {% endif %}
+      </span>
+    </div>
+  </div>
+</section>
+
+<style></style>
+
+<script
+  src="{{ 'button-decoration.js' | asset_url }}"
+  async
+></script>
+
+{{ 'button-decoration.css' | asset_url | stylesheet_tag }}
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var section = document.getElementById('image-banner-{{ section.id }}');
+    var videoElement = section.querySelector('video');
+    var playPauseButton = section.querySelector('#playPauseBtn');
+
+    if (videoElement && playPauseButton) {
+      playPauseButton.addEventListener('click', function () {
+        if (videoElement.paused) {
+          videoElement.play();
+        } else {
+          videoElement.pause();
+        }
+      });
+    }
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Image banner",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Heading",
+      "default": "QUITE AND LUXURY"
+    },
+    {
+      "type": "text",
+      "id": "description",
+      "label": "Description",
+      "default": "crafted with impeccable quality and designed for those who appreciate subtle sophistication."
+    },
+
+    {
+      "type": "range",
+      "id": "banner_size",
+      "min": 10,
+      "max": 100,
+      "step": 10,
+      "label": "Banner height",
+      "default": 100
+    },
+
+    {
+      "type": "header",
+      "content": "Text"
+    },
+
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Align text",
+      "options": [
+        { "value": "text-left", "label": "Left" },
+        { "value": "text-center", "label": "Center" },
+        { "value": "text-right", "label": "Right" }
+      ],
+      "default": "text-center"
+    },
+    {
+      "type": "select",
+      "id": "title_font",
+      "label": "Heading font size",
+      "default": "text-5xl",
+      "options": [
+        {
+          "value": "text-4xl",
+          "label": "Small"
+        },
+        {
+          "value": "text-5xl",
+          "label": "Medium"
+        },
+        {
+          "value": "text-6xl",
+          "label": "Large"
+        }
+      ]
+    },
+
+    {
+      "type": "select",
+      "id": "description_font",
+      "label": "Description font size",
+      "default": "text-md",
+      "options": [
+        {
+          "value": "text-md",
+          "label": "Small"
+        },
+        {
+          "value": "text-lg",
+          "label": "Medium"
+        },
+        {
+          "value": "text-xl",
+          "label": "Large"
+        }
+      ]
+    },
+
+    {
+      "type": "header",
+      "content": "Content Position"
+    },
+
+    {
+      "type": "select",
+      "id": "vertical_alignment",
+      "label": "Vertical alignment",
+      "options": [
+        { "value": "center", "label": "Center" },
+        { "value": "end", "label": "Bottom" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "select",
+      "id": "horizontal_alignment",
+      "label": "Horizontal alignment",
+      "options": [
+        { "value": "start", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "end", "label": "Right" }
+      ],
+      "default": "center"
+    },
+
+    {
+      "type": "header",
+      "content": "Background"
+    },
+
+    {
+      "type": "video",
+      "id": "banner_video",
+      "label": "Background Video"
+    },
+    {
+      "type": "image_picker",
+      "id": "desktop_banner",
+      "label": "Background Image"
+    },
+
+    {
+      "type": "checkbox",
+      "id": "play_button",
+      "label": "Play & Pause Button",
+      "default": true
+    },
+
+    {
+      "type": "header",
+      "content": "Background Overlay"
+    },
+
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "label": "Overlay Opacity",
+      "default": 30
+    },
+    {
+      "type": "color_background",
+      "id": "background",
+      "label": "Overlay color",
+      "default": "linear-gradient(to bottom, #000000, transparent)"
+    },
+
+    {
+      "type": "header",
+      "content": "Primary Button"
+    },
+
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "button label",
+      "default": "Shop Now"
+    },
+
+    {
+      "type": "url",
+      "label": "Button Link",
+      "id": "button_link",
+      "default": "/collections/all",
+      "info": "Select a URL, product, collection, or page link"
+    },
+
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "Button Style",
+      "default": "normal",
+      "options": [
+        {
+          "value": "normal",
+          "label": "Normal"
+        },
+        {
+          "value": "outline",
+          "label": "Outline"
+        },
+        {
+          "value": "underline",
+          "label": "Underline"
+        }
+      ]
+    },
+
+    {
+      "type": "header",
+      "content": "Secondary Button"
+    },
+
+    {
+      "type": "text",
+      "id": "button_text_2",
+      "label": "button label",
+      "default": "Shop Now"
+    },
+
+    {
+      "type": "url",
+      "label": "Button Link",
+      "id": "button_link_2",
+      "default": "/collections/all",
+      "info": "Select a URL, product, collection, or page link"
+    },
+
+    {
+      "type": "select",
+      "id": "button_style_2",
+      "label": "Button Style",
+      "default": "outline",
+      "options": [
+        {
+          "value": "normal",
+          "label": "Normal"
+        },
+        {
+          "value": "outline",
+          "label": "Outline"
+        },
+        {
+          "value": "underline",
+          "label": "Underline"
+        }
+      ]
+    }
+  ],
+
+  "presets": [
+    {
+      "name": "Image banner"
+    }
+  ]
+}
+{% endschema %}

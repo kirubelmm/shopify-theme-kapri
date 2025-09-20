@@ -1,0 +1,133 @@
+
+{%- style -%}
+  @media screen and (max-width: 749px) {
+    .collection-hero--with-image .collection-hero__inner {
+      padding-bottom: calc({{ settings.media_shadow_vertical_offset | at_least: 0 }}px + 2rem);
+    }
+  }
+{%- endstyle -%}
+
+{% if collection.handle != 'all' %}
+
+<section class="">
+  <div class="flex  items-center lg:px-10 md:px-4">
+    <div class="collection-hero__text-wrapper px-4 py-6 md:w-1/2 hidden md:block   ">
+      <h6 class="flex w-lg {{section.settings.title_font}}">
+        
+        {{- collection.title | escape -}}
+      </h6>
+
+      {%- if section.settings.show_collection_description -%}
+        <div class="flex mt-2 justify-center {{section.settings.description_font}} ">{{ collection.description }}</div>
+      {%- endif -%}
+    </div>
+
+    {%- if collection.image -%}
+
+      
+      <div class=" relative md:w-1/2 w-full flex justify-center ">
+
+        {% if section.settings.show_collection_image == true %}
+        <img
+          srcset="{%- if collection.image.width >= 165 -%}{{ collection.image | image_url: width: 165 }} 165w,{%- endif -%}
+            {%- if collection.image.width >= 360 -%}{{ collection.image | image_url: width: 360 }} 360w,{%- endif -%}
+            {%- if collection.image.width >= 535 -%}{{ collection.image | image_url: width: 535 }} 550w,{%- endif -%}
+            {%- if collection.image.width >= 750 -%}{{ collection.image | image_url: width: 750 }} 750w,{%- endif -%}
+            {%- if collection.image.width >= 1070 -%}{{ collection.image | image_url: width: 1070 }} 1070w,{%- endif -%}
+            {%- if collection.image.width >= 1500 -%}{{ collection.image | image_url: width: 1500 }} 1500w,{%- endif -%}
+            {{ collection.image | image_url }} {{ collection.image.width }}w"
+          src="{{ collection.image | image_url: width: 750 }}"
+          sizes="(min-width: {{ settings.page_width }}px) {{ settings.page_width | minus: 100 | divided_by: 2 }}px, (min-width: 750px) calc(50vw - 130px), calc(50vw - 55px)"
+          alt="{{ collection.title | escape }}"
+          width="{{ collection.image.width }}"
+          height="{{ collection.image.height }}"
+          class="md:w-96 md:h-96 object-cover md:py-6 "
+        >
+
+        {% endif %}
+      
+        <!-- Overlay Container -->
+        <div class="{% if section.settings.show_collection_image == true %} absolute text-white bg-black/50 p-4 {% else %}  text-black px-4 py-12 {% endif %} md:hidden inset-0 flex flex-col items-center justify-center text-center">
+          <h1 class=" {{section.settings.title_font}} font-medium ">
+            {{- collection.title | escape -}}
+          </h1>
+          
+          {%- if section.settings.show_collection_description -%}
+            <p class=" mt-2 {{section.settings.description_font}}">{{ collection.description }}</p>
+          {%- endif -%}
+        </div>
+      </div>
+      
+      {% comment %} </div> {% endcomment %}
+
+      
+    {%- endif -%}
+  </div>
+</section>
+
+{% endif %}
+
+{% schema %}
+{
+  "name": "t:sections.main-collection-banner.name",
+  "class": "section",
+  "settings": [
+    
+    {
+      "type": "select",
+      "id": "title_font",
+      "label": "Title Font Size",
+      "default": "text-2xl",
+      "options": [
+        {
+          "value": "text-xl",
+          "label": "Small"
+        },
+        {
+          "value": "text-2xl",
+          "label": "Medium"
+        },
+        {
+          "value": "text-3xl",
+          "label": "Large"
+        },
+      ]
+    },
+    {
+      "type": "select",
+      "id": "description_font",
+      "label": "Description Font Size",
+      "default": "text-md",
+      "options": [
+        {
+          "value": "text-md",
+          "label": "Small"
+        },
+        {
+          "value": "text-lg",
+          "label": "Medium"
+        },
+        {
+          "value": "text-xl",
+          "label": "Large"
+        },
+      ]
+    },
+    
+    {
+      "type": "checkbox",
+      "id": "show_collection_description",
+      "default": true,
+      "label": "t:sections.main-collection-banner.settings.show_collection_description.label"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collection_image",
+      "default": true,
+      "label": "t:sections.main-collection-banner.settings.show_collection_image.label",
+    },
+
+
+  ]
+}
+{% endschema %}

@@ -1,0 +1,186 @@
+<div x-data="{ modalIsOpen: false, selectedTab: 'country' }" class="relative">
+  <!-- Trigger Button -->
+  <button
+    x-on:click="modalIsOpen = true"
+    class="rounded-sm bg-black flex gap-1 text-white py-2 text-sm font-medium hover:opacity-75 focus:outline-none"
+  >
+    {% render 'icon-globe' %}
+    {{ title }}
+  </button>
+
+  <!-- Modal Overlay & Container -->
+  <div
+    x-cloak
+    x-show="modalIsOpen"
+    x-transition.opacity.duration.200ms
+    x-trap.inert.noscroll="modalIsOpen"
+    x-on:click.self="modalIsOpen = false"
+    class="fixed inset-0 z-40 flex items-center justify-center bg-black/10"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="localeModalTitle"
+  >
+    <div
+      x-show="modalIsOpen"
+      x-transition.scale.duration.200ms
+      class="w-full max-w-lg h-96 overflow-hidden rounded-sm bg-white text-black shadow-lg"
+    >
+      <!-- Header -->
+
+      <!-- Body: Tabs + Panels -->
+      <div class="px-4 py-4 h-[calc(100%-3rem)] overflow-hidden">
+        <!-- Tabs -->
+        <div
+          role="tablist"
+          class="flex gap-2 border-b mt-2 border-gray-200 "
+          x-on:keydown.right.prevent="$focus.wrap().next()"
+          x-on:keydown.left.prevent="$focus.wrap().previous()"
+        >
+          {% if localization.available_countries.size > 1 %}
+            <button
+              role="tab"
+              aria-controls="panel-country"
+              x-bind:aria-selected="selectedTab==='country'"
+              x-bind:tabindex="selectedTab==='country'?0:-1"
+              x-on:click="selectedTab='country'"
+              x-bind:class="
+                selectedTab==='country'
+                ? 'border-b border-gray-600 font-bold text-black'
+                : 'text-neutral-600  '
+              "
+              class="px-3 py-1 text-sm"
+            >
+              Country
+            </button>
+          {% endif %}
+
+          {% if localization.available_currencies.size > 1 %}
+            <button
+              role="tab"
+              aria-controls="panel-currency"
+              x-bind:aria-selected="selectedTab==='currency'"
+              x-bind:tabindex="selectedTab==='currency'?0:-1"
+              x-on:click="selectedTab='currency'"
+              x-bind:class="
+                selectedTab==='currency'
+                ? 'border-b border-gray-600 font-bold text-black'
+                : 'text-neutral-600 '
+              "
+              class="px-3 py-1 text-sm"
+            >
+              Currency
+            </button>
+          {% endif %}
+
+          {% if shop.enabled_locales.size > 1 %}
+            <button
+              role="tab"
+              aria-controls="panel-language"
+              x-bind:aria-selected="selectedTab==='language'"
+              x-bind:tabindex="selectedTab==='language'?0:-1"
+              x-on:click="selectedTab='language'"
+              x-bind:class="
+                selectedTab==='language'
+                ? 'border-b border-gray-600 font-bold text-black'
+                : 'text-neutral-600 '
+              "
+              class="px-3 py-1 text-sm"
+            >
+              Language
+            </button>
+          {% endif %}
+        </div>
+
+        <!-- Panels -->
+        <div class="mt-4 h-[86%] overflow-y-auto scroll-hide">
+          <!-- Country Panel -->
+          <div x-cloak x-show="selectedTab==='country'" role="tabpanel" id="panel-country">
+            {% form 'localization' %}
+              <ul class="space-y-1">
+                {% for country in localization.available_countries %}
+                  <li>
+                    <button
+                      type="submit"
+                      name="country_code"
+                      value="{{ country.iso_code }}"
+                      class="w-full border-b border-gray-200 text-left px-3 py-2 rounded-sm hover:bg-gray-100"
+                    >
+                      {{ country.name }} ({{ country.currency.iso_code }})
+                    </button>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% endform %}
+          </div>
+
+          <!-- Currency Panel -->
+          <div x-cloak x-show="selectedTab==='currency'" role="tabpanel" id="panel-currency">
+            {% form 'currency' %}
+              <ul class="space-y-1">
+                {% for currency in shop.enabled_currencies %}
+                  <li>
+                    <button
+                      type="submit"
+                      name="currency"
+                      value="{{ currency.iso_code }}"
+                      class="w-full border-b border-gray-200 text-left px-3 py-2 rounded-sm hover:bg-gray-100"
+                    >
+                      {{ currency.iso_code }}
+                      {{ currency.symbol }}
+                    </button>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% endform %}
+          </div>
+
+          <!-- Language Panel -->
+          <div x-cloak x-show="selectedTab==='language'" role="tabpanel" id="panel-language">
+            {% form 'localization' %}
+              <ul class="space-y-1">
+                {% for language in localization.available_languages %}
+                  <li>
+                    <button
+                      type="submit"
+                      name="locale_code"
+                      value="{{ language.iso_code }}"
+                      class="w-full border-b border-gray-200 text-left px-3 py-2 rounded-sm hover:bg-gray-100"
+                    >
+                      {{ language.endonym_name }}
+                    </button>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% endform %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="flex justify-end items-center px-4 py-1 ">
+        <button
+          x-on:click="modalIsOpen = false"
+          class="px-4 py-1 text-sm font-medium mt-1.5 text-black focus:outline-none"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .scroll-hide::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.3);
+    background-color: #f1f5f9;
+  }
+
+  .scroll-hide::-webkit-scrollbar {
+    width: 4px;
+    background-color: yellow;
+  }
+
+  .scroll-hide::-webkit-scrollbar-thumb {
+    background-color: #1e1b4b;
+  }
+</style>

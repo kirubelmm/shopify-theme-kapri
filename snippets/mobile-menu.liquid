@@ -1,0 +1,132 @@
+{% comment %} <template x-if="true"> {% endcomment %}
+
+<div class="fixed overflow-hidden border-t border-gray-50 z-30"
+    x-data="{ 
+      showMenu: false,
+      headerOffset: 0,
+      init() {
+        this.updateHeaderOffset();
+        window.addEventListener('resize', () => this.updateHeaderOffset());
+      },
+      updateHeaderOffset() {
+        const announcementHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--announcement-bar-height') || '0');
+        const headerHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-height') || '0');
+        this.headerOffset = announcementHeight + headerHeight;
+      }
+    }"
+    x-show="showMenu" x-cloak
+    x-effect="document.body.style.overflow = showMenu ? 'hidden' : ''"
+    @toggle-menu.window="
+      showMenu = !showMenu;
+      if (showMenu) {
+        $nextTick(() => updateHeaderOffset());
+      }
+    "
+    aria-labelledby="slide-over-title" 
+    role="dialog" 
+    aria-modal="true"
+    style="padding-top: calc(var(--announcement-bar-height) + var(--header-height));">
+  
+  <div class="absolute overflow-hidden">
+    
+    <div class="absolute max-w-xs inset-0 bg-gray-500 bg-opacity-75" 
+         x-show="showMenu" 
+         x-transition.opacity 
+         @click="showMenu = false" 
+         aria-hidden="true">
+    </div>
+    
+    <div class="fixed left-0 max-w-full flex z-30">
+
+      <div class="relative w-screen" 
+           x-show="showMenu"
+           x-transition:enter="transform transition ease-[cubic-bezier(1,0,0,1)] duration-[400ms]"
+           x-transition:enter-start="-translate-x-full opacity-100"
+           x-transition:enter-end="translate-x-0 opacity-100"
+x-transition:leave="transform transition ease-[cubic-bezier(1,0,0,0.1)] duration-[300ms] "
+x-transition:leave-start="translate-x-0 opacity-100"
+x-transition:leave-end="-translate-x-full opacity-100">
+        
+
+
+        <!-- Fixed Bottom Navigation placed outside of menu container -->
+  
+        <div class="h-screen w-screen flex flex-col bg-white shadow-xl">
+          <!-- Search and Country Selector -->
+         
+          
+          <!-- Scrollable Menu Content -->
+          <div class="flex-1 overflow-y-auto menu_padding" >
+
+               
+            <div class="px-4 sm:px-6">
+              <ul role="list" class="text-black">
+                {%- for link in section.settings.menu.links -%}
+                  <li>
+                    {%- if link.links != blank -%}
+                      <noscript>
+                        <a href="{{ link.url }}" class="header__menu-item animate-link"{% if link.current %} aria-current="page"{% endif %}>
+                          <span {%- if link.current %} class="header__active-menu-item"{% endif %}>{{ link.title | escape }}</span>
+                        </a>
+                      </noscript>
+  
+                      <div x-data="{ openSubMenu: false }" x-cloak class="{% if has_sub_menu %} has-sub-menu {% endif %}">
+                        <div class="flex justify-between items-center" :class="{ 'menu-active': openSubMenu }">
+                          <a href="{{ link.url }}" class="w-1/2 py-3 text-base inline-flex items-center" {% if link.current %} aria-current="page"{% endif %}>
+                            {{ link.title | escape }}
+                          </a>
+                          <button type="button" @click.prevent="openSubMenu = !openSubMenu"
+                                  title="Toggle menu"
+                                  class="w-1/2 text-right relative overflow-hidden">
+                            {% render 'icon-arrow-right', class: "h-6 transform rotate-90 ml-auto" %}
+                          </button>
+                        </div>
+                  
+                        <div class="navigation__submenu bg-white" x-collapse x-show="openSubMenu">
+                          <ul class="border-l ml-3 pl-2">
+                            {% for submenu in linklists[link.handle].links %}
+                              {% if submenu.title != 'megamenu' %}
+                                <li>
+                                  <a href="{{ submenu.url }}" class="w-full py-3 block text-sm animate-link">
+                                    <span class="inline-flex items-center">
+                                      {{ submenu.title }}
+                                    </span>
+                                  </a>
+                                </li>
+                              {% endif %}
+                            {% endfor %}
+                          </ul>
+                        </div>
+                      </div>                                        
+                    {%- else -%}
+                      <a href="{{ link.url }}" class="w-full py-3 block text-base animate-link"{% if link.current %} aria-current="page"{% endif %}>
+                        <span {%- if link.current %} class="header__active-menu-item" {% endif %}>
+                          {{ link.title | escape }}
+                        </span>
+                      </a>                                    
+                    {% endif %}
+                  </li>
+                {%- endfor -%}
+              </ul>
+            </div>
+          </div>
+
+          <!-- Bottom Navigation -->
+          <div class="sticky right-0 left-0 bottom-0 bg-black w-screen px-3 py-1 flex justify-center items-center text-white">
+            {% render 'Preference',
+
+              title: 'Preference',
+            
+            %}
+          </div>
+        </div>
+
+        
+      </div>
+    </div>
+    
+  </div>
+</div>
+
+{% comment %} </template> {% endcomment %}
+  

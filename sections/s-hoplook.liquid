@@ -1,0 +1,508 @@
+{% style %}
+  /* #column_range-{{ section.id }}{
+    height: {{ section.settings.card_height }}px ;
+
+
+
+
+
+  } */
+{% endstyle %}
+
+<section
+  class="lg:px-10 px-4 section-spacing-{{ section.id }}"
+  style="margin-top: {{ section.settings.section_spacing_top }}rem; margin-bottom: {{ section.settings.section_spacing_bottom }}rem;"
+>
+  <!-- Slider Collection Section -->
+  <div class=" ">
+    {% capture slider_content %}
+
+
+    
+
+    
+    {% for block in section.blocks %}
+
+
+
+
+
+      {% if block.type == 'product_list_block' %}
+        <div x-data="productModal" {{ block.shopify_attributes }}
+          id="column_range-{{ section.id }}"
+          class=" snap-start  relative {% if block.settings.background_image == blank %} border md:py-14 {% if settings.section.column_mobile == 2 %} py-5 {% else %} py-10 {% endif %} {% endif %} "
+          >
+            {% if block.settings.background_image != blank %}
+
+            {% assign dynamic_class = 'product_image-' | append: section.id | append: ' h-full w-screen object-cover object-center ' %}
+
+
+            {{ block.settings.background_image | image_url: width: 1000 | image_tag: 
+class: dynamic_class,
+
+widths: "400,600,800,1000,1400,1600",
+sizes: "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+}}
+
+{% else %}
+
+  {{ 'image' | placeholder_svg_tag: 'class="w-full border-2"' }}  
+  
+
+{% endif %}
+
+            
+
+           
+
+               <!-- Color Overlay -->
+    <div class="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
+
+          
+          
+          <!-- Button to open the popup -->
+        {% capture modal_trigger %}
+          {% comment %} <span class="my-auto pr-2">{% render 'icon-eye' %}</span><span class="my-auto hidden hover:block"> Show Products</span> {% endcomment %}
+          <span class="absolute bottom-4 left-4">
+            <div class="group relative flex shadow-sm space-x-2 bg-white text-center justify-center items-center text-white py-2 px-1.5 rounded-s-full transition-all duration-300 ease-in-out md:hover:pr-4">
+              <!-- Icon (fixed position) -->
+              <div class=" text-black size-5 ml-2 flex justify-center items-center m-auto">
+                {% render 'icon-cart' %}
+              </div>
+              <!-- Text (expands on hover) -->
+              <span class="text-black md:max-w-0 pr-2 md:pr-0 md:overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out md:opacity-0 md:group-hover:ml-2 md:group-hover:max-w-xs md:group-hover:opacity-100">
+                {{ block.settings.button_text  }}
+              </span>
+            </div>
+          </span>
+        {% endcapture %}
+
+      
+
+       
+        
+          {% comment %} <template x-if="true"> {% endcomment %}
+            <!-- Popup modal -->
+            
+              
+            {% capture modal_content %}
+                
+                <div >
+                  <!-- Products List -->
+                  <div class="w-full py-4 mb-16 px-2 h-auto ">
+                    {% for product in block.settings.product_list %}
+                      <div class="flex product-card">
+                        <a href="{{ product.url }}">
+                        <img src="{{ product.featured_image | image_url: width: 100 }}" 
+                          alt="{{ product.featured_image.alt | default: product.title | escape }}"
+                          id="product_image-{{ section.id }}" 
+                          class="mr-4 w-28 object-cover mb-2 " 
+                          height="400" 
+                          width="300" />
+                        </a>
+                        
+                          <span class="grid h-min ml-1 space-y-1 ">
+                            <a href="{{ product.url }}">
+                          <div><h3 class="text-md  ">{{ product.title }}</h3></div>
+                          <div><p class="text-gray-500 mb-1 ">{{ product.price | money }}</p></div>
+                            </a>
+                          
+      
+                          <!-- Variant Picker -->
+                          {% if product.variants.size > 1 %}
+                            <form id="product-form-{{ product.id }}" class="product-form" action="/cart/add" method="post" enctype="multipart/form-data">
+                              {% for option in product.options_with_values %}
+                                <div class="product-option flex gap-2 items-center ">
+                                  <label for="option-{{ option.position }}">{{ option.name }}</label>
+                                  
+                                  <div x-data="{ isOpen: false, openedWithKeyboard: false, selectedOption: '{{ option.values.first }}' }" class="relative w-fit" x-on:keydown.esc.window="isOpen = false, openedWithKeyboard = false">
+                                    <!-- Hidden input to store the value -->
+                                    <input type="hidden" id="option-{{ option.position }}" name="option{{ option.position }}" x-bind:value="selectedOption">
+                                    
+                                    <!-- Toggle Button -->
+                                    <button type="button" x-on:click="isOpen = !isOpen" class="inline-flex items-center gap-2 whitespace-nowrap border border-gray-300 bg-white px-4 py-1 text-sm font-medium tracking-wide transition hover:opacity-75 focus-visible:outline-2" aria-haspopup="true" x-on:keydown.space.prevent="openedWithKeyboard = true" x-on:keydown.enter.prevent="openedWithKeyboard = true" x-on:keydown.down.prevent="openedWithKeyboard = true" x-bind:aria-expanded="isOpen || openedWithKeyboard">
+                                      <span x-text="selectedOption"></span>
+                                      <svg aria-hidden="true" fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4 rotate-0">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+                                      </svg>        
+                                    </button>
+                                    
+                                    <!-- Dropdown Menu -->
+                                    <div x-cloak x-show="isOpen || openedWithKeyboard" x-transition x-trap="openedWithKeyboard" x-on:click.outside="isOpen = false, openedWithKeyboard = false" x-on:keydown.down.prevent="$focus.wrap().next()" x-on:keydown.up.prevent="$focus.wrap().previous()" class="absolute top-11 left-0 z-50 flex w-fit min-w-48 flex-col border border-gray-300 bg-white shadow-md" role="menu">
+                                      {% for value in option.values %}
+                                        <button type="button" class="px-4 py-2 border-b border-gray-50 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 focus-visible:bg-gray-100 focus-visible:text-gray-900 focus-visible:outline-hidden text-left" role="menuitem" x-on:click="selectedOption = '{{ value }}'; isOpen = false; openedWithKeyboard = false;">{{ value }}</button>
+                                      {% endfor %}
+                                    </div>
+                                  </div>
+                                  
+                                </div>
+                              {% endfor %}
+                              <input type="hidden" name="variants" value="{{ product.variants | json | escape }}">
+                            </form>
+                          {% else %}
+                            <form class="product-form" action="/cart/add" method="post">
+                              <input type="hidden" name="id" value="{{ product.variants.first.id }}">
+                              <input type="hidden" name="quantity" value="1">
+                              <input type="hidden" name="variants" value="{{ product.variants | json }}">
+                            </form>
+                          {% endif %}
+                          </span>
+                      
+                      </div>
+
+                 
+
+                    {% else %}
+                      <p class="text-gray-500 text-center p-4 ">No Products Available.</p>
+
+                      
+                    {% endfor %}
+
+                         <!-- Button to add all products to cart -->
+                <div class="flex justify-center sticky bottom-0 mt-4 ">
+                  <button @click="addAllToCart(); modalIsOpen = false"  class="bg-black fixed bottom-5 text-white px-20 py-4 md:py-3 ">Add to bag</button>
+                </div>
+                    
+                  </div>
+                </div>
+                {% endcapture %}
+                {% render 'popup-modal',
+                  trigger: modal_trigger,
+                  title: 'Shop the look',
+                  content: modal_content,
+                  trigger_class: 'p-4 ',
+                  popup_button: 'content-end ',
+                %}
+      
+                
+                
+              
+            
+          {% comment %} </template> {% endcomment %}
+        </div>
+      {% endif %}
+    {% endfor %}
+      
+
+
+
+  
+  {% endcapture %}
+
+    {% render 'product-slider', content: slider_content, section_id: section.id, show_navigation: true %}
+  </div>
+</section>
+
+<script>
+  document.addEventListener('alpine:init', () => {
+    Alpine.data('productModal', () => ({
+      open: false,
+      cartMessage: '',
+
+      // Add All to Cart function
+      addAllToCart() {
+        // Use the closest parent element with the x-data="productModal"
+        const currentBlock = this.$el.closest('[x-data="productModal"]');
+
+        if (!currentBlock) {
+          console.error('Product modal block not found');
+          console.log('Current Element:', this.$el);
+          return;
+        }
+
+        const forms = currentBlock.querySelectorAll('.product-form');
+        const formData = new FormData();
+
+        let hasValidProducts = false;
+
+        forms.forEach((form, index) => {
+          let variantId;
+          let quantity = 1; // Default to quantity 1
+
+          // Collect the selected variant
+          const variantSelects = form.querySelectorAll('select[name^="option"]');
+          if (variantSelects.length > 0) {
+            const selectedOptions = Array.from(variantSelects).map((select) => select.value);
+
+            const variantInput = form.querySelector('input[name="variants"]');
+            if (variantInput) {
+              const variants = JSON.parse(variantInput.value);
+              const matchingVariant = variants.find((variant) =>
+                variant.options.every((option, i) => option === selectedOptions[i])
+              );
+
+              if (matchingVariant) {
+                variantId = matchingVariant.id;
+                hasValidProducts = true;
+              }
+            }
+          } else {
+            const hiddenInput = form.querySelector('input[name="id"]');
+            if (hiddenInput) {
+              variantId = hiddenInput.value;
+              hasValidProducts = true;
+            }
+          }
+
+          if (variantId) {
+            formData.append(`items[${index}][id]`, variantId);
+            formData.append(`items[${index}][quantity]`, quantity); // Default to quantity 1
+          }
+        });
+
+        if (hasValidProducts) {
+          // Add products to cart using the Shopify Ajax API
+          fetch('/cart/add.js', {
+            method: 'POST',
+            body: formData,
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error('Network response was not ok');
+              }
+              return response.json();
+            })
+            .then((data) => {
+              this.cartMessage = 'Products added to cart successfully!';
+              this.$dispatch('cart-updated');
+              this.$dispatch('toggle-cart');
+            })
+            .catch((error) => {
+              console.error('Error adding products to cart:', error);
+              this.cartMessage = 'Error adding products to cart. Please try again.';
+            });
+        } else {
+          this.cartMessage = 'No valid products found to add to cart.';
+        }
+      },
+    }));
+  });
+</script>
+
+<style>
+  @media (max-width: 768px) {
+    .pad {
+      padding-top: 100%;
+    }
+  }
+
+  .placeholder-border {
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Shop The Look",
+  "tag": "section",
+  "class": "featured-collection",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "SHOP THE LOOK"
+    },
+
+    {
+      "type": "header",
+      "content": "Header Font Size"
+    },
+
+    {
+      "type": "select",
+      "id": "header_font",
+      "label": "Desktop Font Size",
+      "default": "md:text-2xl",
+      "options": [
+        {
+          "value": "md:text-xl",
+          "label": "Small"
+        },
+        {
+          "value": "md:text-2xl",
+          "label": "Medium"
+        },
+        {
+          "value": "md:text-3xl",
+          "label": "Large"
+        }
+      ]
+    },
+
+    {
+      "type": "select",
+      "id": "mobile_header_font",
+      "label": "Mobile Font Size",
+      "default": "text-lg",
+      "options": [
+        {
+          "value": "text-md",
+          "label": "Small"
+        },
+        {
+          "value": "text-lg",
+          "label": "Medium"
+        },
+        {
+          "value": "text-xl",
+          "label": "Large"
+        }
+      ]
+    },
+
+    {
+      "type": "header",
+      "content": "Slider"
+    },
+
+    {
+      "type": "checkbox",
+      "id": "slider",
+      "default": true,
+      "label": "Enable slideshow"
+    },
+    {
+      "type": "checkbox",
+      "id": "scroll_bar",
+      "default": true,
+      "label": "Scroll Bar"
+    },
+    {
+      "type": "header",
+      "content": "Columns"
+    },
+    {
+      "type": "select",
+      "id": "column_desktop",
+      "label": "Desktop column",
+      "default": "4",
+      "options": [
+        {
+          "value": "1",
+          "label": "1 Column"
+        },
+        {
+          "value": "2",
+          "label": "2 Columns"
+        },
+        {
+          "value": "3",
+          "label": "3 Columns"
+        },
+        {
+          "value": "4",
+          "label": "4 Columns"
+        },
+        {
+          "value": "5",
+          "label": "5 Columns"
+        }
+      ]
+    },
+
+    {
+      "type": "select",
+      "id": "column_mobile",
+      "label": "Mobile column",
+      "default": "1",
+      "options": [
+        {
+          "value": "1",
+          "label": "1 Column"
+        },
+        {
+          "value": "2",
+          "label": "2 Columns"
+        }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "column_gap",
+      "label": "Column gap",
+      "min": 1,
+      "max": 20,
+      "step": 1,
+      "default": 8
+    },
+
+    {
+      "type": "header",
+      "content": "Section Spacing"
+    },
+
+    {
+      "type": "range",
+      "id": "section_spacing_top",
+      "label": "Top Spacing",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "section_spacing_bottom",
+      "label": "Bottom Spacing",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    }
+  ],
+
+  "blocks": [
+    {
+      "type": "product_list_block",
+      "name": "Product List Block",
+      "settings": [
+        {
+          "type": "product_list",
+          "id": "product_list",
+          "label": "Choose Products",
+          "limit": 16
+        },
+        {
+          "type": "image_picker",
+          "id": "background_image",
+          "label": "Image"
+        },
+
+        {
+          "type": "text",
+          "id": "button_text",
+          "label": "Button Text",
+          "default": "@william"
+        }
+      ]
+    }
+  ],
+
+  "presets": [
+    {
+      "name": "Shop the look",
+      "blocks": [
+        {
+          "type": "product_list_block"
+        },
+        {
+          "type": "product_list_block"
+        },
+        {
+          "type": "product_list_block"
+        },
+        {
+          "type": "product_list_block"
+        },
+        {
+          "type": "product_list_block"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,76 @@
+{% comment %} {%- capture default_trigger_class -%}flex p-3 gap-2 cursor-pointer bg-gray-200 rounded-3xl{%- endcapture -%} {% endcomment %}
+
+<div x-data="{ modalIsOpen: false }" id="sticky-element" class=" {{ popup_button | default: default_popup_button }}">
+  <!-- Trigger Button -->
+  <div class="">
+    <button @click="modalIsOpen = true" type="button" class="{{ trigger_class | default: default_trigger_class }}">
+      {{ trigger }}
+    </button>
+    {{ other_trigger }}
+  </div>
+
+  <template x-teleport="body">
+    <!-- Modal -->
+    <div
+      x-cloak
+      x-show="modalIsOpen"
+      {% comment %} x-trap.inert.noscroll="modalIsOpen" {% endcomment %}
+      @keydown.esc.window="modalIsOpen = false"
+      @click.self="modalIsOpen = false"
+      class="fixed inset-0 z-50 flex items-end lg:justify-end justify-center bg-black/20 backdrop-blur-md sm:items-center"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modalTitle"
+    >
+      <!-- Modal Dialog -->
+      <div
+        x-show="modalIsOpen"
+        x-transition:enter="transform transition ease-[cubic-bezier(1,0,0,1)] duration-[500ms]"
+        x-transition:enter-start="translate-y-full translate-x-0 lg:translate-x-full lg:translate-y-0 opacity-100"
+        x-transition:enter-end="translate-y-0 translate-x-0 opacity-100"
+        x-transition:leave="transform transition ease-[cubic-bezier(1,0,0,1)] duration-[500ms]"
+        x-transition:leave-start="translate-y-0 translate-x-0 opacity-100"
+        x-transition:leave-end="translate-y-full translate-x-0 lg:translate-x-full lg:translate-y-0 opacity-100"
+
+        class="flex w-screen md:w-96 max-h-[80vh] h-min mx-1 md:mx-0 mb-1 md:mb-1 rounded-t-xl md:rounded-none lg:max-h-screen lg:h-screen {{ width_class | default: default_width_class }} flex-col overflow-hidden border border-slate-300 bg-white text-slate-700"
+      >
+        <!-- Dialog Header -->
+        <div class="flex items-center justify-between  p-3  ">
+          <div></div>
+          <h3 id="defaultModalTitle" class=" text-center text-lg tracking-wide text-black ">
+            {{ title }}
+          </h3>
+          <button @click="modalIsOpen = false" aria-label="close modal" class="rounded-full bg-gray-200 size-auto">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              stroke="currentColor"
+              fill="none"
+              stroke-width="1.4"
+              class=" p-0.5 w-5 h-5"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Dialog Content -->
+        <div class="p-3 h-auto overflow-y-auto scroll-hide overflow-x-hidden">
+          {{ content }}
+        </div>
+      </div>
+    </div>
+  </template>
+</div>
+
+<style>
+  .scroll-hide::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.3);
+    background-color: #f1f5f9;
+  }
+
+  .scroll-hide::-webkit-scrollbar {
+    height: 2px;
+  }
+</style>

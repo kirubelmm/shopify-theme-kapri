@@ -1,0 +1,228 @@
+<form action="{{ routes.cart_url }}" method="post" class="h-full lg:mx-24 relative">
+  <div class="mt-6 relative flex-1 h-full">
+    {% if cart.item_count > 0 %}
+      <div class="relative md:grid grid-cols-3">
+        {% assign total_savings = 0 %}
+        <div class="md:pr-7 col-span-2">
+          {% for item in cart.items %}
+            <div class="cart-item">
+              <div
+                class="
+                  flex p-3 my-3 border-color bg-gray-50 w-full items-center relative
+                  {% unless forloop.last %}  {% endunless %}
+                "
+              >
+                <div class="">
+                  {% if item.image %}
+                    {{ item.image | image_url: width: 400 | image_tag: loading: 'lazy', class: 'w-32 pr-3' }}
+                  {% else %}
+                    {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+                  {% endif %}
+                </div>
+
+                <div class="w-8/12 flex flex-col justify-between h-full ">
+                  <span class="absolute top-0 md:pt-6 pt-8 w-full">
+                    <h3 class="text-md font-medium w-10/12">
+                      <a href="{{ item.url }}" title="{{ item.product.title }}" class="w-5/6">
+                        {{- item.product.title -}}
+                      </a>
+                    </h3>
+
+                    {% if item.variant.title != 'Default Title'
+                      and item.variant.title != 'No Color / OS'
+                      and item.variant.title != 'NC / OS'
+                    %}
+                      <div class="w-full flex-none text-xs font-medium text-gray-500 mt-2">
+                        {{ item.variant.title }}
+                      </div>
+                    {% endif %}
+                  </span>
+
+                  <div class="">
+                    <div
+                      class="flex max-w-24 md:w-1/2 absolute bottom-0 mb-3 mt-2 border border-gray-200 "
+                      x-data="{ qty: {{ item.quantity }}}"
+                    >
+                      <button
+                        type="button"
+                        title="decrease quantity"
+                        @click.debounce="loading = true; Sunrise.updateQuantity({{ forloop.index }}, --qty);"
+                        class="text-center cursor-pointer p-1 w-3/12"
+                      >
+                        &minus;
+                      </button>
+                      <input
+                        class="text-center bg-white   w-6/12 "
+                        type="text"
+                        type="number"
+                        min="1"
+                        size="2"
+                        value="{{ item.quantity }}"
+                        name="quantity"
+                      >
+
+                      <button
+                        type="button"
+                        title="increase quantity"
+                        @click.debounce="loading = true; Sunrise.updateQuantity({{ forloop.index }}, ++qty)"
+                        class="text-center cursor-pointer  p-1  w-3/12"
+                      >
+                        &plus;
+                      </button>
+                    </div>
+
+                    <div class="absolute p-3 right-0 bottom-0 ">
+                      {% if item.line_level_discount_allocations.size > 0 %}
+                        {% comment %} {% assign item_discount = item.original_price | minus: item.price %} {% endcomment %}
+
+                        <div class="font-medium text-gray-500 mt-2">
+                          <span class="money text-red-700">
+                            {{ item.price | money_with_currency }}
+                          </span>
+                          <s class="text-gray-500">
+                            {{ item.original_price | money_with_currency }}
+                          </s>
+                        </div>
+
+                        {% for discount_allocation in item.line_level_discount_allocations %}
+                          <div class="text-xs font-bold text-green-700 mt-2">
+                            <i>{{ discount_allocation.discount_application.title }}</i>
+                          </div>
+                        {% endfor %}
+                      {% else %}
+                        <div class="mt-2 font-medium">
+                          <span class="money {% if item.product.compare_at_price > item.price %} text-red-700{% endif %}">
+                            {{ item.price | money_with_currency }}
+                          </span>
+                          {% if item.product.compare_at_price > item.price %}
+                            {% assign item_saving = item.product.compare_at_price | minus: item.price %}
+                            {% assign total_savings = total_savings | plus: item_saving %}
+                            <s class="text-gray-500">
+                              {{ item.product.compare_at_price | money_with_currency }}
+                            </s>
+                          {% endif %}
+                        </div>
+                      {% endif %}
+
+                      {% if item.selling_plan_allocation.price > 0 %}
+                        <div class="cart_subscription text-sm">
+                          <p class="cart_subscription--messsage">
+                            Delivery: {{ item.selling_plan_allocation.selling_plan.name }}
+                          </p>
+                          <span class="cart_subscription--discount font-semibold text-green-700">
+                            You saved extra {{ item.selling_plan_allocation.selling_plan.price_adjustments[0].value -}}
+                            {%- if item.selling_plan_allocation.selling_plan.price_adjustments[0].value_type
+                                == 'percentage'
+                            -%}
+                              %
+                            {% endif %}
+                          </span>
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  title="remove {{ item.product.title }}"
+                  @click="loading = true; Sunrise.updateQuantity({{ forloop.index }}, 0)"
+                  class="md:size-7 size-6 p-[4px] m-3 cursor-pointer flex items-center justify-center absolute right-0 top-0 rounded-full bg-white"
+                >
+                  {% render 'icon-delete', class: 'w-3' %}
+                </button>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="w-full  sticky top-0 bg-white   col-span-1">
+          {% if section.settings.notes %}
+            <div class="cart__note flex flex-col py-3">
+              <label for="Cart-note" class="inline-block font-medium pb-2">{{ 'sections.cart.note' | t }}</label>
+              <textarea
+                class="text-area border p-3 border-gray-200"
+                name="note"
+                id="Cart-note"
+                placeholder="{{ 'sections.cart.note' | t }}"
+              >{{ cart.note }}</textarea>
+            </div>
+          {% endif %}
+
+          {%- if cart.cart_level_discount_applications.size > 0 -%}
+            <div
+              class="total-discounts flex justify-between font-medium pb-2  text-green-700"
+              aria-label="{{ 'customer.order.discount' | t }}"
+            >
+              {%- for discount in cart.cart_level_discount_applications -%}
+                <i class="flex space-x-1">
+                  {% render 'icon-discount', class: 'w-4 mr-1' %}
+                  <span>{{ discount.title }} </span>
+                </i>
+                <span>(-{{ discount.total_allocated_amount | money }})</span>
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
+
+          <div class="sub-total flex justify-between text-base pb-2">
+            <span class="flex items-center gap-2">
+              {{ 'general.cart.subtotal' | t }}
+              <div class="product__tax caption rte text-xs text-gray-500 ">
+                {%- if shop.taxes_included -%}
+                  {{ 'products.product.include_taxes' | t }}
+                {%- endif -%}
+              </div>
+            </span>
+            <span>{{ cart.total_price | money_with_currency }}</span>
+          </div>
+
+          {%- assign total_savings = 0 -%}
+          {% for item in cart.items %}
+            {%- assign total_savings = total_savings | plus: item.original_line_price | minus: item.line_price -%}
+          {% endfor %}
+
+          {% if total_savings > 0 %}
+            <div class="sub-total flex text-xs justify-end  text-red-700">
+              <span class="flex gap-1 mr-1 ">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+                  <path fill="currentColor" fill-rule="evenodd" d="M3.207 14.207a1 1 0 0 1 0-1.414l9.5-9.5A1 1 0 0 1 13.414 3H20a1 1 0 0 1 1 1v6.586a1 1 0 0 1-.293.707l-9.5 9.5a1 1 0 0 1-1.414 0zM19.8 10.503V4.2h-6.303l-9.3 9.3l6.303 6.303zM16 9.5a1.5 1.5 0 1 1 0-3a1.5 1.5 0 0 1 0 3"/>
+                </svg>
+                {{ 'general.cart.saving' | t -}}
+              </span>
+              <span> {{ total_savings | money_with_currency }}</span>
+            </div>
+          {% endif %}
+
+          {% comment %}
+            {% if total_savings > 0 %}
+              <div class="sub-total flex justify-between text-base pb-2  text-red-700">
+                <span> {{ 'general.cart.saving' | t }}</span>
+                <span>-{{ total_savings | money_with_currency }}</span>
+              </div>
+            {% endif %}
+          {% endcomment %}
+
+          <button
+            name="checkout"
+            type="submit"
+            class="w-full text-sm px-5 py-2 flex justify-center items-center text-center button__primary cursor-pointer mt-2"
+          >
+            {{ 'general.cart.checkout' | t }}
+          </button>
+        </div>
+      </div>
+    {% else %}
+      <div class="empty-cart text-center max-w-xs md:max-w-md px-4">
+        {% render 'icon-cart', class: 'mx-auto w-8 h-8' %}
+        <h4 class="text-lg heading-font py-2 !font-bold">{{ 'general.cart.cart_empty_title_html' | t }}</h4>
+        <button
+          @click="$dispatch('toggle-cart')"
+          type="button"
+          class="inline-block mx-auto px-8 py-2 text-sm text-center  w-full font-medium"
+        >
+          {{ 'general.cart.continue_shopping' | t }}
+        </button>
+      </div>
+    {% endif %}
+  </div>
+</form>

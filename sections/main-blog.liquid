@@ -1,0 +1,194 @@
+{% assign post_limit = section.settings.post_limit %}
+<div class="my-8 lg:px-10 px-4">
+  {%- paginate blog.articles by post_limit -%}
+    <div class="main-blog section-{{ section.id }}-padding ">
+      <h1 class="title--primary {{ section.settings.header_position }} {{ section.settings.header_font }} {% if settings.animations_reveal_on_scroll %} scroll-trigger animate--fade-in{% endif %}">
+        {{ blog.title | escape }}
+      </h1>
+
+      <div class="blog-articles grid {{section.settings.column_desktop}} {{ section.settings.column_tablet }} {{ section.settings.column_mobile }} gap-{{ section.settings.column_gap }} {% if section.settings.layout == 'collage' %}blog-articles--collage{% endif %}">
+        {%- for article in blog.articles -%}
+          <div
+            class="{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}"
+            {% if settings.animations_reveal_on_scroll %}
+              data-cascade
+              style="--animation-order: {{ forloop.index }};"
+            {% endif %}
+          >
+            {%- render 'article-card',
+              article: article,
+              media_height: section.settings.image_height,
+              media_aspect_ratio: article.image.aspect_ratio,
+              show_image: section.settings.show_image,
+              show_date: section.settings.show_date,
+              show_author: section.settings.show_author,
+              show_excerpt: true
+            -%}
+          </div>
+        {%- endfor -%}
+      </div>
+
+      {%- if paginate.pages > 1 -%}
+        {% render 'infinite-scroll',
+          next_page: paginate.next.url,
+          page_size: paginate.pages,
+          end_text: 'You reached the end...'
+        %}
+      {%- endif -%}
+    </div>
+  {%- endpaginate -%}
+</div>
+{% schema %}
+{
+  "name": "Blog Page",
+  "tag": "section",
+  "class": "section",
+  "enabled_on": {
+    "templates": ["blog"]
+  },
+  "settings": [
+    {
+      "type": "select",
+      "id": "header_font",
+      "label": "Font Size",
+      "default": "text-2xl",
+      "options": [
+        {
+          "value": "text-xl",
+          "label": "Small"
+        },
+        {
+          "value": "text-2xl",
+          "label": "Medium"
+        },
+        {
+          "value": "text-3xl",
+          "label": "Large"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "header_position",
+      "label": "Font Size",
+      "default": "text-left",
+      "options": [
+        {
+          "value": "text-left",
+          "label": "Left"
+        },
+        {
+          "value": "text-center",
+          "label": "Center"
+        },
+        {
+          "value": "text-right",
+          "label": "Right"
+        }
+      ]
+    },
+
+    {
+      "type": "checkbox",
+      "id": "show_date",
+      "default": true,
+      "label": "t:sections.main-blog.settings.show_date.label"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_author",
+      "default": false,
+      "label": "t:sections.main-blog.settings.show_author.label"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_time",
+      "default": true,
+      "label": "Reading Duration"
+    },
+    {
+      "type": "range",
+      "id": "post_limit",
+      "min": 2,
+      "max": 24,
+      "step": 1,
+      "default": 16,
+      "label": "Articles per page"
+    },
+    {
+      "type": "select",
+      "id": "column_desktop",
+      "label": "Desktop column",
+      "default": "lg:grid-cols-4",
+      "options": [
+        {
+          "value": "lg:grid-cols-2",
+          "label": "Two Column"
+        },
+        {
+          "value": "lg:grid-cols-3",
+          "label": "Three Columns"
+        },
+        {
+          "value": "lg:grid-cols-4",
+          "label": "Four Columns"
+        },
+        {
+          "value": "lg:grid-cols-5",
+          "label": "Five Columns"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "column_tablet",
+      "label": "Tablet column",
+      "default": "md:grid-cols-3",
+      "options": [
+        {
+          "value": "md:grid-cols-2",
+          "label": "Two Column"
+        },
+        {
+          "value": "md:grid-cols-3",
+          "label": "Three Columns"
+        },
+        {
+          "value": "md:grid-cols-4",
+          "label": "Four Columns"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "column_mobile",
+      "label": "Tablet column",
+      "default": "grid-cols-1",
+      "options": [
+        {
+          "value": "grid-cols-1",
+          "label": "One Column"
+        },
+        {
+          "value": "md:grid-cols-2",
+          "label": "Two Columns"
+        }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "column_gap",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "default": 2,
+      "label": " Column Gap"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Blog Page"
+    }
+  ]
+}
+{% endschema %}

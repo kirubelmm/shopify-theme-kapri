@@ -1,0 +1,260 @@
+<article class=" py-5" itemscope itemtype="http://schema.org/BlogPosting">
+  <div class="max-w-4xl mx-auto pb-10 bg-white">
+    {%- for block in section.blocks -%}
+      {%- case block.type -%}
+        {%- when '@app' -%}
+          <div class="max-w-4xl mx-auto">
+            {% render block %}
+          </div>
+
+        {%- when 'featured_image' -%}
+          {%- if article.image -%}
+            <div class="relative overflow-hidden" {{ block.shopify_attributes }}>
+              <div
+                class="media aspect-ratio"
+                itemprop="image"
+                {% comment %} {% if block.settings.image_height == 'adapt' and article.image %} style="padding-bottom: {{ 1 | divided_by: article.image.aspect_ratio | times: 100 }}%;"{% endif %} {% endcomment %}
+              >
+                <img
+                  src="{{ article.image | image_url: width: 1100 }}"
+                  loading="lazy"
+                  class="object-cover w-full mb-5"
+                  width="{{ article.image.width }}"
+                  height="{{ article.image.height }}"
+                  alt="{{ article.image.alt | escape }}"
+                >
+              </div>
+            </div>
+          {%- endif -%}
+
+        {%- when 'title' -%}
+          <header class="max-w-4xl mx-auto text-left px-8 " {{ block.shopify_attributes }}>
+            <h1 class="text-4xl mb-8 font-bold" itemprop="headline">{{ article.title | escape }}</h1>
+            {%- if block.settings.blog_show_date -%}
+              <span class="text-sm mr-4 py-2 text-gray-500" itemprop="dateCreated pubdate datePublished">
+                {{- article.published_at | time_tag: format: 'date' -}}
+              </span>
+            {%- endif -%}
+            {%- if block.settings.blog_show_author -%}
+              <span class="text-sm text-gray-500" itemprop="author" itemscope itemtype="http://schema.org/Person">
+                <span itemprop="name">By {{ article.author }}</span>
+              </span>
+            {%- endif -%}
+          </header>
+
+        {%- when 'content' -%}
+          <div
+            class="prose max-w-4xl px-8 mx-auto mt-6 flex flex-col gap-4"
+            itemprop="articleBody"
+            {{ block.shopify_attributes }}
+          >
+            {{ article.content }}
+          </div>
+
+        {%- when 'share' -%}
+          <div class="flex mt-6 max-w-4xl px-8 mx-auto" {{ block.shopify_attributes }}>
+            <div
+              class="justify-start "
+              {{ block.shopify_attributes }}
+            >
+              {% assign share_url = request.origin | append: article.url %}
+              {% render 'share-button', block: block, share_link: share_url %}
+            </div>
+          </div>
+      {%- endcase -%}
+    {%- endfor -%}
+
+    <div class="text-center mt-8">
+      <a href="{{ blog.url }}" class="text-blue-500 hover:underline">
+        {% comment %} <span>{% render 'icon-arrow' %}</span> {% endcomment %}
+        {% comment %} {{ 'blogs.article.back_to_blog' | t: title: blog.title }} {% endcomment %}
+      </a>
+    </div>
+
+    {%- if blog.comments_enabled? -%}
+      <div class="bg-gray-100 py-8">
+        <div class="max-w-2xl mx-auto">
+          {%- if article.comments_count > 0 -%}
+            <h2 class="text-lg font-bold mb-4">{{ 'blogs.article.comments' | t: count: article.comments_count }}</h2>
+            {% paginate article.comments by 5 %}
+              <div class="space-y-4">
+                {%- for comment in article.comments -%}
+                  <article id="{{ comment.id }}" class="p-4 bg-white rounded shadow">
+                    <p>{{ comment.content }}</p>
+                    <footer class="text-right text-sm text-gray-500">
+                      <span>{{ comment.author }}</span> |
+                      <span>{{ comment.created_at | time_tag: format: 'date' }}</span>
+                    </footer>
+                  </article>
+                {%- endfor -%}
+              </div>
+              {% render 'infinite-scroll',
+                next_page: paginate.next.url,
+                page_size: paginate.pages,
+                end_text: 'You reached the end...'
+              %}
+            {% endpaginate %}
+          {%- endif -%}
+
+          <form method="post" action="/comments">
+            <h2 class="text-lg font-bold mb-4">{{ 'blogs.article.comment_form_title' | t }}</h2>
+            <div class="space-y-4">
+              <div class="flex flex-col">
+                <label for="CommentForm-author" class="text-sm font-bold">{{ 'blogs.article.name' | t }} *</label>
+                <input id="CommentForm-author" type="text" name="comment[author]" class="border p-2 rounded" required>
+              </div>
+              <div class="flex flex-col">
+                <label for="CommentForm-email" class="text-sm font-bold">{{ 'blogs.article.email' | t }} *</label>
+                <input id="CommentForm-email" type="email" name="comment[email]" class="border p-2 rounded" required>
+              </div>
+              <div class="flex flex-col">
+                <label for="CommentForm-body" class="text-sm font-bold">{{ 'blogs.article.message' | t }} *</label>
+                <textarea
+                  id="CommentForm-body"
+                  rows="5"
+                  name="comment[body]"
+                  class="border p-2 rounded"
+                  required
+                ></textarea>
+              </div>
+            </div>
+            <button type="submit" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">
+              {{ 'blogs.article.post' | t }}
+            </button>
+          </form>
+        </div>
+      </div>
+    {%- endif -%}
+  </div>
+</article>
+
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "Article",
+    "articleBody": {{ article.content | strip_html | json }},
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": {{ shop.url | append: page.url | json }}
+    },
+    "headline": {{ article.title | json }},
+    {% if article.excerpt != blank %}
+      "description": {{ article.excerpt | strip_html | json }},
+    {% endif %}
+    {% if article.image %}
+      {% assign image_size = article.image.width %}
+      "image": [
+        {{ article | image_url: width: image_size | prepend: "https:" | json }}
+      ],
+    {% endif %}
+    "datePublished": {{ article.published_at | date: '%Y-%m-%dT%H:%M:%SZ' | json }},
+    "dateCreated": {{ article.created_at | date: '%Y-%m-%dT%H:%M:%SZ' | json }},
+    "author": {
+      "@type": "Person",
+      "name": {{ article.author | json }}
+    },
+    "publisher": {
+      "@type": "Organization",
+      {% if settings.share_image %}
+        {% assign image_size = settings.share_image.width %}
+        "logo": {
+          "@type": "ImageObject",
+          "height": {{ settings.share_image.height | json }},
+          "url": {{ settings.share_image | image_url: width: image_size | prepend: "https:" | json }},
+          "width": {{ settings.share_image.width | json }}
+        },
+      {% endif %}
+      "name": {{ shop.name | json }}
+    }
+  }
+</script>
+
+{% schema %}
+{
+  "name": "t:sections.main-article.name",
+  "tag": "section",
+  "class": "section",
+  "blocks": [
+    {
+      "type": "@app"
+    },
+    {
+      "type": "featured_image",
+      "name": "t:sections.main-article.blocks.featured_image.name",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "image_height",
+          "options": [
+            {
+              "value": "adapt",
+              "label": "t:sections.main-article.blocks.featured_image.settings.image_height.options__1.label"
+            },
+            {
+              "value": "small",
+              "label": "t:sections.main-article.blocks.featured_image.settings.image_height.options__2.label"
+            },
+            {
+              "value": "medium",
+              "label": "t:sections.main-article.blocks.featured_image.settings.image_height.options__3.label"
+            },
+            {
+              "value": "large",
+              "label": "t:sections.main-article.blocks.featured_image.settings.image_height.options__4.label"
+            }
+          ],
+          "default": "adapt",
+          "label": "t:sections.main-article.blocks.featured_image.settings.image_height.label",
+          "info": "t:sections.main-article.blocks.featured_image.settings.image_height.info"
+        }
+      ]
+    },
+    {
+      "type": "title",
+      "name": "t:sections.main-article.blocks.title.name",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "blog_show_date",
+          "default": true,
+          "label": "t:sections.main-article.blocks.title.settings.blog_show_date.label"
+        },
+        {
+          "type": "checkbox",
+          "id": "blog_show_author",
+          "default": false,
+          "label": "t:sections.main-article.blocks.title.settings.blog_show_author.label"
+        }
+      ]
+    },
+    {
+      "type": "content",
+      "name": "t:sections.main-article.blocks.content.name",
+      "limit": 1
+    },
+    {
+      "type": "share",
+      "name": "t:sections.main-article.blocks.share.name",
+      "limit": 2,
+      "settings": [
+        {
+          "type": "text",
+          "id": "share_label",
+          "label": "t:sections.main-article.blocks.share.settings.text.label",
+          "default": "Share"
+        },
+        {
+          "type": "paragraph",
+          "content": "t:sections.main-article.blocks.share.settings.featured_image_info.content"
+        },
+        {
+          "type": "paragraph",
+          "content": "t:sections.main-article.blocks.share.settings.title_info.content"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

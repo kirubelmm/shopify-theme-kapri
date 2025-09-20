@@ -1,0 +1,276 @@
+{% style %}
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .scroll-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .scroll-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+{% endstyle %}
+
+<div class=" lg:px-10 md:px-4 px-2 section-{{ section.id }}" id="ProductGridContainer">
+  
+  {% if section.settings.enable_sorting or section.settings.enable_filtering %}
+    <div class="flex justify-between">
+
+      {% assign sort_by = collection.sort_by | default: collection.default_sort_by %}
+      <div class="collection__sort flex justify-end" 
+        x-data="{
+          loading: false,
+          sort: '{{ sort_by }}',
+          sortCollection(){
+            this.loading = true;
+            fetch('/collections/{{ collection.handle }}?sort_by=' + this.sort)
+              .then(response => response.text())
+              .then(data => {
+                let html_div = document.createElement('div');
+                html_div.innerHTML = data;
+  
+                let html_dom = html_div.querySelector('#ProductGridContainer').innerHTML;
+                document.querySelector('#ProductGridContainer').innerHTML = html_dom;
+                // update url without refreshing the page 
+                history.replaceState(null, null, '?sort_by=' + this.sort);
+              })
+              .catch(error => console.error('Error:', error))
+              .finally(() => this.loading = false);
+          }
+        }">
+        
+        {% render 'loader' %}
+        
+      </div>
+
+    </div>
+  {% endif %}
+
+   <!-- Drawer for mobile -->
+
+  <div class="">
+
+
+  {% if section.settings.enable_filtering %}
+
+<div x-data="{ modalIsOpen: false }" id="sticky-element" class=" sticky top-0 h-auto mb-2 z-30 items-center bg-white transition-shadow duration-300 py-2" >
+
+  <!-- Trigger Button -->
+  <div class="" >
+
+    <button @click="modalIsOpen = true" type="button" class="inline-flex justify-center items-center gap-2 whitespace-nowrap rounded-radius bg-primary border border-primary dark:border-primary-dark px-4 py-1 text-sm font-medium tracking-wide text-on-primary transition hover:opacity-75 text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:opacity-100 active:outline-offset-0 disabled:opacity-75 disabled:cursor-not-allowed dark:bg-primary-dark dark:text-on-primary-dark dark:focus-visible:outline-primary-dark">
+      Filter
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 512 512"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M32 144h448M112 256h288M208 368h96"/></svg>
+  </button>
+
+    
+  </div>
+
+  
+  <!-- Modal -->
+  <div x-cloak x-show="modalIsOpen" x-trap.inert.noscroll="modalIsOpen" @keydown.esc.window="modalIsOpen = false" @click.self="modalIsOpen = false" 
+       class="hidescroll fixed inset-0 flex items-end md:justify-start justify-center bg-black/20 backdrop-blur-md sm:items-center"
+       role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    
+    <!-- Modal Dialog -->
+    <div x-show="modalIsOpen" 
+      x-transition:enter="transform transition ease-[cubic-bezier(1,0,0,1)] duration-[500ms]"
+x-transition:enter-start="translate-y-full translate-x-0 md:-translate-x-full md:translate-y-0 opacity-100"
+x-transition:enter-end="translate-y-0 translate-x-0 opacity-100"
+x-transition:leave="transform transition ease-[cubic-bezier(1,0,0,1)] duration-[500ms]"
+x-transition:leave-start="translate-y-0 translate-x-0 opacity-100"
+x-transition:leave-end="translate-y-full translate-x-0 md:-translate-x-full md:translate-y-0 opacity-100"
+
+
+      class="flex md:h-full h-[75%] w-96 flex-col mx-1 mb-1 md:mx-0 md:mb-0 rounded-t-xl md:rounded-none overflow-hidden border border-slate-300 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+
+      <!-- Dialog Header -->
+      <div  class="flex items-center justify-between  p-3  dark:border-slate-700 dark:bg-slate-900/20">
+        <h3 id="defaultModalTitle" class="font-semibold tracking-wide text-black w-full text-center dark:text-white"> Filter </h3>
+        <button @click="modalIsOpen = false" aria-label="close modal" class="bg-gray-200 rounded-full p-[2px]" >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" stroke="currentColor" fill="none" stroke-width="1.4" class="w-4 h-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    </div>
+      
+      <!-- Dialog Content -->
+      <div class="px-3 pt-4 h-screen scroll-hide overflow-y-auto">
+        <div class=" w-full">
+          {% if section.settings.enable_filtering %}
+            <div class="h-screen">
+              {% render 'filters', results: collection, enable_sorting: section.settings.enable_filtering %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endif %}
+
+
+
+  
+
+
+  
+  
+  
+ 
+    
+   
+    
+    
+  
+    <div class="">
+      {%- paginate collection.products by section.settings.products_per_page -%}
+        {%- if collection.products.size == 0 -%}
+          <div class="collection collection--empty" id="product-grid" data-id="{{ section.id }}">
+            <div class="loading-overlay gradient"></div>
+            <div class="title-wrapper center">
+              <h2 class="title title--primary">
+                {{ 'sections.collection_template.empty' | t }}<br>
+                {{ 'sections.collection_template.use_fewer_filters_html' | t: link: collection.url, class: "underlined-link link" }}
+              </h2>
+            </div>
+          </div>
+        {%- else -%}
+          <div class="collection">
+            <ul id="product-grid" data-id="{{ section.id }}" class="grid {{ section.settings.column_tablet }} {{ section.settings.column_desktop }} gap-{{ section.settings.column_gap }}">
+              {%- for product in collection.products -%}
+                <li class="grid__item ">
+                  {% render 'card-product',
+                    card_product: product,
+                    media_aspect_ratio: section.settings.image_ratio,
+                    show_secondary_image: section.settings.show_secondary_image,
+                    show_vendor: section.settings.show_vendor,
+                    show_rating: section.settings.show_rating,
+                    section_id: section.id
+                  %}
+                </li>
+              {%- endfor -%}
+            </ul>
+  
+            {%- if paginate.pages > 1 -%}
+              {% comment %} {% render 'pagination', paginate: paginate, anchor: '' %} {% endcomment %}
+              {% render 'infinite-scroll',
+                next_page: paginate.next.url,
+                page_size: paginate.pages,
+                end_text: "You reached the end..."
+              %}
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      {%- endpaginate -%}
+    </div>
+  </div>
+  
+
+</div>
+
+
+
+
+
+
+{% schema %}
+{
+  "name": "t:sections.main-collection-product-grid.name",
+  "class": "section",
+  "settings": [
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "min": 8,
+      "max": 24,
+      "step": 4,
+      "default": 16,
+      "label": "t:sections.main-collection-product-grid.settings.products_per_page.label"
+    },
+
+    {
+      "type": "header",
+      "content": "Product columns"
+    },
+    {
+      "type": "select",
+      "id": "column_desktop",
+      "label": "Desktop column",
+      "default": "lg:grid-cols-4",
+      "options": [
+        
+        {
+          "value": "lg:grid-cols-2",
+          "label": "Two Column"
+        },
+        {
+          "value": "lg:grid-cols-3",
+          "label": "Three Columns"
+        },
+        {
+          "value": "lg:grid-cols-4",
+          "label": "Four Columns"
+        },
+        {
+          "value": "lg:grid-cols-5",
+          "label": "Five Columns"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "column_tablet",
+      "label": "Tablet column",
+      "default": "md:grid-cols-3",
+      "options": [
+        
+        {
+          "value": "md:grid-cols-2",
+          "label": "Two Column"
+        },
+        {
+          "value": "md:grid-cols-3",
+          "label": "Three Columns"
+        },
+        {
+          "value": "md:grid-cols-4",
+          "label": "Four Columns"
+        },
+       
+      ]
+    },
+    {
+      "type": "range",
+      "id": "column_gap",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "default": 2,
+      "label": " Column Gap"
+    },
+
+    
+    {
+      "type": "header",
+      "content": "t:sections.main-collection-product-grid.settings.header__1.content"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_filtering",
+      "default": true,
+      "label": "t:sections.main-collection-product-grid.settings.enable_filtering.label",
+      "info": "You can use the Shopify Search & Discovery app to custmize filters"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sorting",
+      "default": true,
+      "label": "t:sections.main-collection-product-grid.settings.enable_sorting.label"
+    },
+
+    
+  ]
+}
+{% endschema %}

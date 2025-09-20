@@ -1,0 +1,55 @@
+<div
+  class="relative inset-0 overflow-hidden z-50"
+  x-data="
+    {
+       showCartDrawer: false,
+       loading: false,
+       updateCart(){
+           // send fetch reqeust to update cart
+           fetch('/?view=cart')
+           .then(response => response.text())
+           .then(cartData => {
+               $refs.cart_content.innerHTML = cartData;
+
+               // This code is use to parse json object. for cart count
+               var el = document.createElement('div');
+               el.innerHTML = cartData;
+               var cartCount = JSON.parse(el.querySelector('[data-options]').innerHTML).item_count;
+               $dispatch('cart-count-updated', cartCount);
+               this.loading = false;
+
+           })
+       }
+    }
+  "
+  x-show="showCartDrawer"
+  x-cloak
+  @cart-updated.window="updateCart;"
+  @toggle-cart.window="showCartDrawer = !showCartDrawer"
+  aria-labelledby="slide-over-title"
+  role="dialog"
+  aria-modal="true"
+>
+  <div class="fixed inset-0 z-30 flex items-end justify-end  bg-black/10 sm:items-center">
+    <div class="" x-show="showCartDrawer" x-transition.opacity @click="showCartDrawer = false" aria-hidden="true"></div>
+    <div class="fixed inset-y-0 right-0 max-w-full flex">
+      <div
+        class="relative w-screen max-w-xs md:max-w-md"
+        x-show="showCartDrawer"
+        x-transition:enter="transform transition ease-[cubic-bezier(1,0,0,1)] duration-[500ms] "
+        x-transition:enter-start="translate-x-full opacity-100"
+        x-transition:enter-end="translate-x-0 opacity-100"
+        x-transition:leave="transform transition ease-[cubic-bezier(1,0,0,1)] duration-[500ms] "
+        x-transition:leave-start="translate-x-0 opacity-100"
+        x-transition:leave-end="translate-x-full opacity-100"
+        {% comment %} style="transition-timing-function: cubic-bezier(1, 0, 0, 1);" {% endcomment %}
+      >
+        {% render 'loader' %}
+
+        <div class="h-full flex flex-col bg-white shadow-xl " x-ref="cart_content">
+          {% render 'cart-form' %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

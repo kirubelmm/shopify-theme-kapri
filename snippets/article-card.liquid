@@ -1,0 +1,57 @@
+{% assign word_count = article.content | strip_html | size %}
+{% assign words_per_minute = 200 %}
+{% assign read_time = word_count | divided_by: words_per_minute | ceil %}
+
+<div class="group relative h-96 w-full overflow-hidden ">
+  <a href="{{ article.url }}">
+    <div class="bg-gray-50 w-full h-full">
+      {% if article.image.src != blank %}
+        <img
+          src="{{ article.image | image_url: width: 800 }}"
+          alt="{{ article.image.alt }}"
+          class="w-full h-full object-cover"
+          height=""
+          width=""
+        >
+      {% else %}
+        {{ 'image' | placeholder_svg_tag }}
+      {% endif %}
+
+      {}
+    </div>
+    <div class=" bg-gray-100 p-4 space-y-3 absolute bottom-0 left-0 w-full h-[50%] transition-all duration-500 group-hover:h-full">
+      <h3 class="text-lg font-medium text-black leading-tight">
+        {% if article.title != blank %}
+          {{ article.title | truncate: 50 | escape }}
+        {% else %}
+          This is blog Title
+        {% endif %}
+      </h3>
+
+      {% if section.settings.show_author %}
+        <p class="font-semibold text-black text-xs ">
+          {% if article.author != blank %} {{ article.author }} {% else %} kirubel Mulugeta {% endif %}
+        </p>
+      {% endif %}
+
+      <p class="text-sm text-black opacity-0 transition-[opacity,transform] duration-300 group-hover:opacity-100 group-hover:delay-200 line-clamp-3 group-hover:-translate-y-1">
+        {% if article.content != blank %}
+          {{ article.content | strip_html | truncatewords: 30 }}
+        {% else %}
+          This is blog content
+        {% endif %}
+      </p>
+    </div>
+
+    <!-- Fixed Read Time -->
+    {% if section.settings.show_time %}
+      <span class="absolute bottom-3 left-3 shadow-sm bg-white group-hover:bg-black group-hover:text-white text-black text-xs font-semibold px-3 py-2 rounded-full">
+        {% if read_time > 0 %}
+          {{ read_time }} min Read
+        {% else %}
+          5 min read
+        {%- endif %}
+      </span>
+    {% endif %}
+  </a>
+</div>

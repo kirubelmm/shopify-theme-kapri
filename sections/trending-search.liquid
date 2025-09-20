@@ -1,0 +1,148 @@
+<section
+  style="margin-top: {{ section.settings.section_spacing_top }}rem; margin-bottom: {{ section.settings.section_spacing_bottom }}rem;"
+>
+  <div class="bg-gray-100">
+    <div class=" lg:px-10 md:px-4 px-2 p-6">
+      <h2 class="{{ section.settings.header_font }} {{ section.settings.mobile_header_font }} text-gray-800 uppercase mb-8">
+        Trending SEARCHES
+      </h2>
+      <div class="flex flex-wrap gap-4">
+        {% assign search_terms = section.settings.search_terms | split: ',' %}
+        {% for term in search_terms %}
+          <a
+            href="{{ routes.search_url }}?q={{ term | strip | url_encode }}"
+            class="group relative px-4 py-2 space-x-2 {{ section.settings.search_font }} bg-white border-2 border-gray-100 hover:border-white hover:bg-black hover:text-white {% if section.settings.rounded_button %} rounded-full {% endif %} text-gray-800 font-medium hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center transition-all duration-300"
+          >
+            <!-- Search icon -->
+
+            {% render 'icon-search', class: 'size-4 mr-2' %}
+
+            {{ term | strip }}
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Trending Searches",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Header Font Size"
+    },
+
+    {
+      "type": "select",
+      "id": "header_font",
+      "label": "Desktop Font Size",
+      "default": "md:text-2xl",
+      "options": [
+        {
+          "value": "md:text-xl",
+          "label": "Small"
+        },
+        {
+          "value": "md:text-2xl",
+          "label": "Medium"
+        },
+        {
+          "value": "md:text-3xl",
+          "label": "Large"
+        }
+      ]
+    },
+
+    {
+      "type": "select",
+      "id": "mobile_header_font",
+      "label": "Mobile Font Size",
+      "default": "text-lg",
+      "options": [
+        {
+          "value": "text-md",
+          "label": "Small"
+        },
+        {
+          "value": "text-lg",
+          "label": "Medium"
+        },
+        {
+          "value": "text-xl",
+          "label": "Large"
+        }
+      ]
+    },
+
+    {
+      "type": "header",
+      "content": "Trending Search Terms"
+    },
+
+    {
+      "type": "text",
+      "id": "search_terms",
+      "label": "Search Terms (comma-separated)",
+      "default": "Men's Polos, Women's Polos, Quarter Zips, Vests, Coastline Collection"
+    },
+
+    {
+      "type": "select",
+      "id": "search_font",
+      "label": "Search Term Font",
+      "default": "text-xl",
+      "options": [
+        {
+          "value": "text-md",
+          "label": "Small"
+        },
+        {
+          "value": "text-lg",
+          "label": "Medium"
+        },
+        {
+          "value": "text-xl",
+          "label": "Large"
+        }
+      ]
+    },
+
+    {
+      "type": "checkbox",
+      "id": "rounded_button",
+      "label": "Rounded Buttton",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Section Spacing"
+    },
+
+    {
+      "type": "range",
+      "id": "section_spacing_top",
+      "label": "Top Spacing",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "section_spacing_bottom",
+      "label": "Bottom Spacing",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    }
+  ],
+  "presets": [
+    {
+      "name": "Trending Searches"
+    }
+  ]
+}
+{% endschema %}

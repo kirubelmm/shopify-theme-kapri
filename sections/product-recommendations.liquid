@@ -1,0 +1,251 @@
+<style>
+  .icon-container {
+    display: none;
+  }
+</style>
+<section
+  id="product_rec-{{ section.id }}"
+  class=" lg:px-20 md:px-4 px-2"
+  style="margin-top: {{ section.settings.section_spacing_top }}rem; margin-bottom: {{ section.settings.section_spacing_bottom }}rem;"
+>
+  <product-recommendations
+    class="product-recommendations pt-[{{ section.settings.padding_top | times: 0.75 | round: 0 }}px] pb-[{{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px] lg:pt-[{{ section.settings.padding_top }}px] lg:pb-[{{ section.settings.padding_bottom }}px]"
+    data-url="{{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ product.id }}&limit=16&intent=related"
+  >
+    {% if recommendations.performed? and recommendations.products_count > 0 %}
+      {% capture slider_content %}
+        {% for recommendation in recommendations.products %}
+          <div
+            id="column_range-{{ section.id }}"
+            class="snap-center product-item"
+            data-tags="{{ recommendation.tags | join: ',' }}"
+          >
+            {% render 'card-product',
+               card_product: recommendation,
+               settings.quick_shop: false,
+               show_secondary_image: settings.show_secondary_image,
+               section_id: section.id,
+               card_text_alignment: settings.card_text_alignment,
+ %}
+          </div>
+        {% endfor %}
+      {% endcapture %}
+
+      {% render 'product-slider',
+        content: slider_content,
+        section_id: section.id,
+        show_navigation: false,
+        viewall_url: section.settings.collection.url
+      %}
+    {% endif %}
+  </product-recommendations>
+</section>
+
+{% javascript %}
+  const handleIntersection = (entries, observer) => {
+    if (!entries[0].isIntersecting) return;
+
+    observer.unobserve(productRecommendationsSection);
+
+    const url = productRecommendationsSection.dataset.url;
+
+    fetch(url)
+      .then((response) => response.text())
+      .then((text) => {
+        const html = document.createElement('div');
+        html.innerHTML = text;
+        const recommendations = html.querySelector('.product-recommendations');
+
+        if (recommendations && recommendations.innerHTML.trim().length) {
+          productRecommendationsSection.replaceWith(recommendations);
+          const newRecommendationsSection = document.querySelector('.product-recommendations');
+
+          if (window.MyTheme && window.MyTheme.initializeAllQuickAddForms) {
+            setTimeout(() => {
+              // Initialize Alpine components with specific class
+              newRecommendationsSection.querySelectorAll('.alpine-component').forEach((el) => {
+                Alpine.initTree(el);
+              });
+
+              window.MyTheme.initializeAllQuickAddForms(newRecommendationsSection);
+              observer.observe(newRecommendationsSection);
+            }, 100);
+          }
+        }
+      })
+      .catch(console.error);
+  };
+
+  let productRecommendationsSection = document.querySelector('.product-recommendations');
+  const observer = new IntersectionObserver(handleIntersection, {
+    rootMargin: '0px 0px 200px 0px',
+  });
+
+  if (productRecommendationsSection) {
+    observer.observe(productRecommendationsSection);
+  }
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "t:sections.product-recommendations.name",
+  "tag": "section",
+  "class": "section",
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "You may also like"
+    },
+    {
+      "type": "select",
+      "id": "header_font",
+      "label": "Font Size",
+      "default": "text-2xl",
+      "options": [
+        {
+          "value": "text-xl",
+          "label": "Small"
+        },
+        {
+          "value": "text-2xl",
+          "label": "Medium"
+        },
+        {
+          "value": "text-3xl",
+          "label": "Large"
+        }
+      ]
+    },
+
+    {
+      "type": "header",
+      "content": "Layout Settings"
+    },
+
+    {
+      "type": "checkbox",
+      "id": "slider",
+      "default": true,
+      "label": "Enable slideshow"
+    },
+    {
+      "type": "checkbox",
+      "id": "scroll_bar",
+      "default": true,
+      "label": "Scroll Bar"
+    },
+
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "min": 2,
+      "max": 24,
+      "step": 2,
+      "default": 12,
+      "label": "t:sections.featured-collection.settings.products_to_show.label"
+    },
+
+    {
+      "type": "checkbox",
+      "id": "show_secondary_image",
+      "default": false,
+      "label": "t:sections.featured-collection.settings.show_secondary_image.label"
+    },
+
+    {
+      "type": "header",
+      "content": "Product Columns"
+    },
+
+    {
+      "type": "select",
+      "id": "column_desktop",
+      "label": "Desktop column",
+      "default": "4",
+      "options": [
+        {
+          "value": "1",
+          "label": "1 Column"
+        },
+        {
+          "value": "2",
+          "label": "2 Columns"
+        },
+        {
+          "value": "3",
+          "label": "3 Columns"
+        },
+        {
+          "value": "4",
+          "label": "4 Columns"
+        },
+        {
+          "value": "5",
+          "label": "5 Columns"
+        }
+      ]
+    },
+
+    {
+      "type": "select",
+      "id": "column_mobile",
+      "label": "Mobile column",
+      "default": "1",
+      "options": [
+        {
+          "value": "1",
+          "label": "1 Column"
+        },
+        {
+          "value": "2",
+          "label": "2 Columns"
+        }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "column_gap",
+      "label": "Column gap",
+      "min": 1,
+      "max": 20,
+      "step": 1,
+      "default": 8
+    },
+
+    {
+      "type": "header",
+      "content": "Section Spacing"
+    },
+
+    {
+      "type": "range",
+      "id": "section_spacing_top",
+      "label": "Top Spacing",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "section_spacing_bottom",
+      "label": "Bottom Spacing",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    }
+  ],
+
+  "presets": [
+    {
+      "name": "Product recommendations"
+    }
+  ]
+}
+{% endschema %}

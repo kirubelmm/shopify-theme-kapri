@@ -1,0 +1,72 @@
+<div class="filter-form">
+    <div id="tag-checkboxes" class="container">
+      {% assign tag_set = '' %}
+      {% for product in section.settings.collection.products limit: section.settings.products_to_show %}
+        {% for tag in product.tags %}
+          {% assign tag_set = tag_set | append: tag | append: ',' %}
+        {% endfor %}
+      {% endfor %}
+      {% assign tag_array = tag_set | split: ',' | uniq %}
+      {% for tag in tag_array %}
+        {% unless tag == blank %}
+          <div class="filter tag-{{ tag | handleize }}">
+            <label>
+              <input type="checkbox" id="tag-{{ forloop.index }}" value="{{ tag }}">
+              <span class="uppercase">{{ tag }}</span>
+            </label>
+          </div>
+        {% endunless %}
+      {% endfor %}
+    </div>
+  </div>
+
+
+<!-- CSS for Checkbox Buttons -->
+  <style>
+    .container {
+      width: 100%;
+      
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: start;
+    }
+    
+    .filter {
+      {% comment %} margin: 4px;
+      border-radius:50px;
+      overflow: hidden; {% endcomment %}
+    }
+    
+    .filter label span{
+      text-align: center;
+      display: block;
+      color: black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 8px;
+      cursor: pointer;
+      border-bottom: 1.5px solid rgba(0, 0, 0, 0.1);
+
+      {% comment %} background-color: rgb(249, 249, 249); {% endcomment %}
+   /* Default background color when inactive */
+      {% comment %} transition: background-color 0.3s ease; /* Smooth transition for background color */ {% endcomment %}
+      width: 100%; /* Ensure the label covers the whole container */
+      height: 100%; /* Ensure the label covers the whole container */
+    }
+    
+    
+    .filter input {
+      display: none; /* Hide the checkbox */
+    }
+    
+    .filter input:checked + span {
+      {% comment %} background-color: #000000; /* Black background when checkbox is checked */
+      color: #ffffff;
+      text-shadow: 0 0 6px rgba(0, 0, 0, 0.8); {% endcomment %}
+      
+      border-bottom: solid black 1.5px;
+
+      
+    }
+  </style>

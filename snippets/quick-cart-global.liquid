@@ -1,0 +1,404 @@
+{% comment %}
+  <ajax-cart-product-form>
+    <form
+      class="w-auto quick-add-form-{{ section_id }}"
+      action="/cart/add"
+      method="post"
+      id="product-form-{{ card_product.id }}"
+      data-variants="{{ card_product.variants | json | escape }}"
+    >
+      <!-- Mobile Product Display -->
+      <div class="flex items-center gap-4 mb-4">
+        <img
+          src="{{ card_product.featured_image | image_url: width: 100 }}"
+          alt="{{ card_product.title }}"
+          class="w-24 h-24 object-cover"
+          height="300"
+          width="200"
+        >
+        <div class="flex flex-col">
+          <p class="text-md mb-2">{{ card_product.title }}</p>
+          <span class="text-sm">{{ card_product.price | money }}</span>
+        </div>
+      </div>
+
+      <!-- Variant Selection -->
+      <div>
+        {% for option in card_product.options_with_values %}
+          <div
+            class="variation-group {% if card_product.variants.size == 1 %} hidden {% endif %} mb-2"
+            data-option-index="{{ forloop.index }}"
+          >
+            <h5 class="md:hidden py-1 mb-1">{{ option.name }}</h5>
+            <div class="button-checkboxes-{{ section_id }} grid grid-cols-4 lg:grid-cols-5 gap-1">
+              {% for value in option.values %}
+                <input
+                  type="radio"
+                  id="variant-{{ card_product.id }}-{{ option.name | handleize }}-{{ value | handleize }}"
+                  name="{{ option.name }}"
+                  value="{{ value }}"
+                  class="hidden-checkbox-{{ section_id }}"
+                  onchange="handleVariantChangeFirst(this.form)"
+                >
+                <label
+                  for="variant-{{ card_product.id }}-{{ option.name | handleize }}-{{ value | handleize }}"
+                  class="checkbox-button-{{ section_id }} md:shadow-gray-200 border border-gray-200 shadow-sm text-center text-sm text-opacity-70 py-1 overflow-hidden"
+                >
+                  <h3>{{ value }}</h3>
+                </label>
+              {% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Hidden Input for Variant ID -->
+      <input type="hidden" name="id" value="" class="variant-id  ">
+
+      <!-- Add to Cart Button with a unique class -->
+      <div class="relative">
+        <button
+          @click="modalIsOpen = false"
+          type="button"
+          class="add-to-cart-button-first py-2 text-white bg-black w-full"
+        >
+          Add to Bag
+        </button>
+      </div>
+    </form>
+  </ajax-cart-product-form>
+
+  <style>
+    /* Basic tooltip styling; adjust as needed */
+    .tooltip {
+      position: absolute;
+      top: -2.5rem; /* adjust position relative to button */
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #333;
+      color: #fff;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      white-space: nowrap;
+      z-index: 1000;
+      opacity: 0.9;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .quick-add-form-{{ section_id }} {
+        background-color: white;
+        /* Additional mobile styles as needed */
+      }
+      .checkbox-button-{{ section_id }} {
+        /* Custom mobile border styling can be added here */
+      }
+      .hidden-checkbox-{{ section_id }} {
+        display: block;
+      }
+    }
+    @media (min-width: 768px) {
+      .quick-add-form-{{ section_id }} {
+        background-opacity: 0;
+      }
+    }
+
+    .add-to-cart-button-first[disabled] {
+      opacity: 0.7;
+      cursor: not-allowed;
+      position: relative;
+    }
+
+    .add-to-cart-button-first[disabled]::after {
+      content: '';
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #fff;
+      border-top-color: transparent;
+      animation: spin 0.8s linear infinite;
+      margin-left: 8px;
+    }
+    .hidden-checkbox-{{ section_id }}:checked + .checkbox-button-{{ section_id }} {
+      background-color: black !important;
+      color: #fff !important;
+      border-color: #007bff !important;
+    }
+
+    .hidden-checkbox-{{ section_id }}:checked + .checkbox-button-{{ section_id }}:hover {
+      background-color: #0056b3;
+    }
+    .hidden-checkbox-{{ section_id }} {
+      display: none;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+
+  <script>
+    (function () {
+      // Prevent Multiple Initializations for this block
+      if (!window.quickAddCartFirstInitialized) {
+        // Handle Add to Cart Button Click (using a unique button class)
+        document.addEventListener('click', function (e) {
+          const button = e.target.closest('.quick-add-form-{{ section_id }} .add-to-cart-button-first');
+          if (!button) return;
+
+          const form = button.closest('form');
+          if (!form || form.dataset.processing) return;
+
+          handleFormSubmitFirst(form);
+        });
+
+        // Handle Variant Selection Changes with a unique function name
+        document.addEventListener('change', function (e) {
+          const radio = e.target.closest('.quick-add-form-{{ section_id }} input[type="radio"]');
+          if (!radio) return;
+
+          const form = radio.closest('form');
+          if (form) handleVariantChangeFirst(form);
+        });
+
+        window.quickAddCartFirstInitialized = true;
+      }
+
+      // Update Variant ID Based on Selection (renamed function)
+      window.handleVariantChangeFirst = function (form) {
+        const options = {};
+
+        form.querySelectorAll('.variation-group:not(.hidden) input[type="radio"]:checked').forEach((input) => {
+          const optionIndex = input.closest('.variation-group').dataset.optionIndex;
+          options[`Option${optionIndex}`] = input.value;
+        });
+
+        const variants = JSON.parse(form.dataset.variants);
+        const variant = variants.find((v) =>
+          v.options.every((option, index) => option === options[`Option${index + 1}`])
+        );
+
+        if (variant) {
+          form.querySelector('.variant-id').value = variant.id;
+        } else {
+          console.log('No variant matched');
+        }
+      };
+
+      // Handle Form Submission via AJAX with Tooltip Alert (renamed function)
+      async function handleFormSubmitFirst(form) {
+        form.dataset.processing = 'true';
+        const variantId = form.querySelector('.variant-id').value;
+        const submitBtn = form.querySelector('.add-to-cart-button-first');
+
+        // Check for variant selection
+        if (!variantId) {
+          // Create tooltip element
+          const tooltip = document.createElement('div');
+          tooltip.className = 'tooltip';
+          tooltip.textContent = 'Please select a variant';
+
+          // Append tooltip to the button container (relative parent)
+          const btnContainer = submitBtn.parentElement;
+          btnContainer.appendChild(tooltip);
+
+          // Remove tooltip after 3 seconds
+          setTimeout(() => {
+            tooltip.remove();
+          }, 3000);
+
+          // Remove processing state to allow further attempts
+          delete form.dataset.processing;
+          return;
+        }
+
+        try {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Adding...';
+
+          // Use the AJAX cart call
+          await window.liquidAjaxCart.add({
+            items: [
+              {
+                id: variantId,
+                quantity: 1,
+              },
+            ],
+          });
+
+          form.reset();
+          form.querySelector('.variant-id').value = '';
+        } catch (error) {
+          console.error('Cart error:', error);
+          // Optionally, add an error tooltip
+          const errorTooltip = document.createElement('div');
+          errorTooltip.className = 'tooltip';
+          errorTooltip.textContent = 'Failed to add to cart';
+          submitBtn.parentElement.appendChild(errorTooltip);
+          setTimeout(() => {
+            errorTooltip.remove();
+          }, 3000);
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Add to Bag';
+          delete form.dataset.processing;
+        }
+      }
+
+      // Reset the form when the section reloads
+      document.addEventListener('shopify:section:load', function (e) {
+        if (e.detail.sectionId === '{{ section_id }}') {
+          document.querySelectorAll('.quick-add-form-{{ section_id }}').forEach((form) => {
+            form.querySelectorAll('input[type="radio"]').forEach((input) => {
+              input.checked = false;
+            });
+            form.querySelector('.variant-id').value = '';
+          });
+        }
+      });
+    })();
+  </script>
+{% endcomment %}
+{% comment %}
+  <ajax-cart-product-form>
+    {% form 'product', card_product, class: 'quick-add-form-{{ section_id }} ' %}
+      <!-- Variant buttons with visual indicator -->
+      {% if card_product.variants.size > 1 %}
+        <label for="variant-buttons-{{ card_product.id }}-{{ section_id }}" class="block font-medium">
+          {{ card_product.options.first.name }}
+        </label>
+        <div id="variant-buttons-{{ card_product.id }}-{{ section_id }}" class="grid grid-cols-5 gap-1 mb-2 ">
+          {% for variant in card_product.variants %}
+            <div class="inline-block">
+              <input
+                type="radio"
+                id="variant-{{ variant.id }}"
+                name="id"
+                value="{{ variant.id }}"
+                class="peer hidden"
+                {% unless variant.available %}
+                  disabled
+                {% endunless %}
+              >
+              <label
+                for="variant-{{ variant.id }}"
+                class="
+                  inline-flex w-full bg-white  text-xs font-semibold items-center justify-center px-3 py-2 border border-black/10  cursor-pointer transition
+                  {% unless variant.available %}opacity-50 cursor-not-allowed{% endunless %}
+                  peer-checked:border-blue-600 peer-checked:bg-black peer-checked:text-white
+                  hover:bg-black hover:text-white
+                "
+              >
+                {{ variant.title }}
+                {% unless variant.available %} – Sold out{% endunless %}
+              </label>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <!-- Only one variant → hidden input -->
+        <input type="hidden" name="id" value="{{ card_product.variants.first.id }}">
+      {% endif %}
+
+      <!-- Quantity -->
+      <label for="quantity-{{ card_product.id }}-{{ section_id }}" class="hidden mb-1 font-medium"> Quantity </label>
+      <input
+        id="quantity-{{ card_product.id }}-{{ section_id }}"
+        type="number"
+        name="quantity "
+        min="1"
+        value="1"
+        class="w-20 mb-4 border hidden rounded p-2"
+      >
+
+      <!-- Add to Cart button -->
+      <button
+        type="submit"
+        class="w-full bg-black text-white py-2 "
+      >
+        Add to Bag
+      </button>
+    {% endform %}
+  </ajax-cart-product-form>
+{% endcomment %}
+
+<div
+  x-data="{ isMobile: window.matchMedia('(max-width: 640px)').matches }"
+  x-init="
+    const handler = () => isMobile = window.matchMedia('(max-width: 640px)').matches;
+    window.addEventListener('resize', handler);
+    $watch('isMobile', () => {});
+  "
+>
+  <template x-if="isMobile">
+    <ajax-cart-product-form>
+      <form
+        class="quick-add-form"
+        method="post"
+        action="/cart/add"
+        enctype="multipart/form-data"
+        data-product-id="{{ card_product.id }}"
+        {% if card_product.variants.size > 1 %}
+          data-variants="{{ card_product.variants | json | escape }}"
+          data-option-count="{{ card_product.options.size | default: 0 }}"
+        {% endif %}
+      >
+        {% if card_product.variants.size > 1 %}
+          {% for option in card_product.options_with_values %}
+            <div class="variant-option-group" data-option-position="{{ option.position }}">
+              <label class="block font-medium mb-1">{{ option.name }}</label>
+              <div class="grid grid-cols-5 gap-1">
+                {% for value in option.values %}
+                  <div class="inline-block">
+                    <input
+                      type="radio"
+                      id="option-{{ section_id | default: 'prod' }}-{{ card_product.id }}-{{ option.position }}-{{ value | handleize }}"
+                      {% comment %} Added default for section_id in case it's nil {% endcomment %}
+                      name="options[{{ option.name | escape }}]"
+                      value="{{ value | escape }}"
+                      class="peer hidden variant-option"
+                      data-option-position="{{ option.position }}"
+                      data-value="{{ value | escape }}"
+                      {% comment %}
+                        SIMPLIFIED CHECKED LOGIC:
+                        Check if the current value matches the option's selected_value.
+                        This should correctly reflect the selected_or_first_available_variant's options.
+                      {% endcomment %}
+                      {% if option.selected_value == value %}
+                        checked
+                      {% endif %}
+                      required
+                    >
+                    <label
+                      for="option-{{ section_id | default: 'prod' }}-{{ card_product.id }}-{{ option.position }}-{{ value | handleize }}"
+                      class="inline-flex w-full bg-white text-xs font-semibold items-center justify-center px-3 py-2 border border-black/10 cursor-pointer transition peer-checked:border-blue-600 peer-checked:bg-black peer-checked:text-white hover:bg-black hover:text-white"
+                    >
+                      {{ value }}
+                    </label>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          {% endfor %}
+          {% comment %}
+            Ensure the hidden input for 'id' (variant_id) is correctly set
+            to the selected or first available variant on page load.
+            The JavaScript will update this if selections change.
+          {% endcomment %}
+          <input
+            type="hidden"
+            name="id"
+            class="selected-variant-id"
+            value="{{ card_product.selected_or_first_available_variant.id }}"
+          >
+          <div class="variant-error-message text-red-600 text-sm mt-2 hidden">Please select all options</div>
+        {% else %}
+          {% comment %} Single variant product - no options to select {% endcomment %}
+          <input type="hidden" name="id" value="{{ card_product.variants.first.id }}">
+        {% endif %}
+
+        <button type="submit" name="add" class="w-full bg-black text-white py-2 mt-2">Add to Bag</button>
+      </form>
+    </ajax-cart-product-form>
+  </template>
+</div>
